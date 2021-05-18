@@ -1,3 +1,5 @@
 node_modules
 config/db.js
 .git
+.vscode
+package-lock.json
