@@ -15,11 +15,8 @@ router.get('/showLogin', (req,res)=>{
 })
 
 //Register User
-router.get('/user/register', (req,res)=>{
-	const title = 'Register';
-	res.render('user/register',{
-	
-	})
+router.get('/showregister', (req, res) => {
+	res.render('user/register');
 })
 
 //video
