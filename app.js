@@ -41,6 +41,7 @@ authenticate.localStrategy(passport);
 const mainRoute = require('./routes/main');
 const userRoute = require('./routes/user');
 const videoRoute = require('./routes/video');
+const chatRoute = require('./routes/chat');
 
 const { formatDate } = require('./helpers/hbs');
 
@@ -138,6 +139,7 @@ app.use(function (req, res, next) {
 app.use('/', mainRoute); // mainRoute is declared to point to routes/main.js
 app.use('/user', userRoute);
 app.use('/video', videoRoute);
+app.use("/chat", chatRoute);
 // This route maps the root URL to any path defined in main.js
 
 /*
@@ -147,6 +149,22 @@ app.use('/video', videoRoute);
 const port = 5000;
 
 // Starts the server and listen to port 5000
-app.listen(port, () => {
-	console.log(`Server started on port ${port}`);
+let server = app.listen(port, () => {
+	console.log(`Server started on port ${server.address().port}`);
 });
+
+const io = require("socket.io")(server);
+
+io.on("connection", (socket) => {
+    console.log("New User Connected!");
+
+    socket.username = "Anonymous";
+
+    socket.on("change_username", (data) => {
+        socket.username = data.username;
+    });
+
+    socket.on("new_message", (data) => {
+        io.sockets.emit("new_message", {message: data.message, username: socket.username});
+    });
+})
