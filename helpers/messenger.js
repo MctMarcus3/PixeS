@@ -11,11 +11,11 @@ const flashMessage = (res, messageType, message, icon, dismissable) => {
             alert = res.flashMessenger.info(message);
             break;
         case 'danger':
-            alert = res.flashMessenger.danger(message); 
-            break; 
-        default: 
-            alert = res.flashMessenger.info(message); 
-        } 
-        alert.titleIcon = icon; 
-        alert.canBeDismissed = dismissable; 
-    }; module.exports = flashMessage; // returns a function
+            alert = res.flashMessenger.danger(message);
+            break;
+        default:
+            alert = res.flashMessenger.info(message);
+            }
+        alert.titleIcon = icon;
+        alert.canBeDismissed = dismissable;
+        }; module.exports = flashMessage; // returns a function

@@ -9,8 +9,30 @@ const exphbs = require('express-handlebars');
 const methodOverride = require('method-override');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const flash = require('connect-flash');
+const flash = require("connect-flash");
 const FlashMessenger = require('flash-messenger');
+const Handlebars = require('handlebars');
+// Library to use MySQL to store session objects
+const MySQLStore = require('express-mysql-session');
+const db = require('./config/db'); // db.js config file
+const passport = require('passport');
+
+
+
+// Import function exported by newly installed node modules.
+const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access');
+
+// Bring in database connection
+const vidjotDB = require('./config/DBConnection');
+// Connects to MySQL database
+vidjotDB.setUpDB(false); // To set up database with new tables set (true)
+
+// Passport Config
+const authenticate = require('./config/passport');
+authenticate.localStrategy(passport);
+
+
+
 
 /*
 * Loads routes file main.js in routes directory. The main.js determines which function
@@ -18,17 +40,16 @@ const FlashMessenger = require('flash-messenger');
 */
 const mainRoute = require('./routes/main');
 const userRoute = require('./routes/user');
+const videoRoute = require('./routes/video');
+
+const { formatDate } = require('./helpers/hbs');
+
+
 /*
 * Creates an Express server - Express is a web application framework for creating web applications
 * in Node JS.
 */
 const app = express();
-
-// Library to use MySQL to store session objects
-const MySQLStore = require('express-mysql-session');
-const db = require('./config/db');
-const videoRoute = require('./routes/video')
-const passport = require('passport');
 
 // Handlebars Middleware
 /*
@@ -41,7 +62,12 @@ const passport = require('passport');
 *
 * */
 app.engine('handlebars', exphbs({
-	defaultLayout: 'main' // Specify default template views/layout/main.handlebar 
+	helpers: {
+		formatDate: formatDate
+	},
+
+	defaultLayout: 'main', // Specify default template views/layout/main.handlebar 
+	handlebars: allowInsecurePrototypeAccess(Handlebars)
 }));
 app.set('view engine', 'handlebars');
 
@@ -51,9 +77,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Creates static folder for publicly accessible HTML, CSS and Javascript files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -62,50 +85,6 @@ app.use(methodOverride('_method'));
 
 // Enables session to be stored using browser's Cookie ID
 app.use(cookieParser());
-
-// To store session information. By default it is stored as a cookie on browser
-app.use(session({
-	key: 'vidjot_session',
-	secret: 'tojiv',
-	resave: false,
-	saveUninitialized: false,
-}));
-
-// Using connect-flash
-app.use(flash());
-app.use(FlashMessenger.middleware)
-
-// Place to define global variables - not used in practical 1
-app.use(function (req, res, next) {
-	next();
-});
-
-// Use Routes
-/*
-* Defines that any root URL with '/' that Node JS receives request from, for eg. http://localhost:5000/, will be handled by
-* mainRoute which was defined earlier to point to routes/main.js
-* */
-app.use('/', mainRoute); // mainRoute is declared to point to routes/main.js
-app.use('/user', userRoute);
-// This route maps the root URL to any path defined in main.js
-
-/*
-* Creates a unknown port 5000 for express server since we don't want our app to clash with well known
-* ports such as 80 or 8080.
-* */
-
-
-
-app.use('/video', videoRoute)
-
-
-// Bring in database connection
-const vidjotDB = require('./config/DBConnection');
-// Connects to MySQL database
-vidjotDB.setUpDB(false); // To set up database with new tables set (true)
-
-const authenticate = require('./config/passport');
-authenticate.localStrategy(passport);	
 
 // Express session middleware - uses MySQL to store session
 app.use(session({
@@ -124,10 +103,25 @@ app.use(session({
 		expiration: 900000,
 	}),
 	resave: false,
+	saveUninitialized: false
+}));
+
+// Initilize Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// To store session information. By default it is stored as a cookie on browser
+app.use(session({
+	key: 'vidjot_session',
+	secret: 'tojiv',
+	resave: false,
 	saveUninitialized: false,
 }));
 
+app.use(flash());
+app.use(FlashMessenger.middleware);
 
+// Place to define global variables - not used in practical 1
 app.use(function (req, res, next) {
 	res.locals.success_msg = req.flash('success_msg');
 	res.locals.error_msg = req.flash('error_msg');
@@ -136,8 +130,21 @@ app.use(function (req, res, next) {
 	next();
 });
 
-const port = 5000;
+// Use Routes
+/*
+* Defines that any root URL with '/' that Node JS receives request from, for eg. http://localhost:5000/, will be handled by
+* mainRoute which was defined earlier to point to routes/main.js
+* */
+app.use('/', mainRoute); // mainRoute is declared to point to routes/main.js
+app.use('/user', userRoute);
+app.use('/video', videoRoute);
+// This route maps the root URL to any path defined in main.js
 
+/*
+* Creates a unknown port 5000 for express server since we don't want our app to clash with well known
+* ports such as 80 or 8080.
+* */
+const port = 5000;
 
 // Starts the server and listen to port 5000
 app.listen(port, () => {
