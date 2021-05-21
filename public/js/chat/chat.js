@@ -30,3 +30,11 @@ $(function() {
 		feedback.html("<p><i>" + data.username + " is typing a message..." + "</i></p>")
 	})
 });
+
+function addUser() {
+    var data = prompt("Enter username");
+};
+
+function addUser() {
+    var data = prompt("Enter group id");
+};
