@@ -3,9 +3,9 @@ const router = express.Router();
 const alertMessage = require('../helpers/messenger');
 
 
-router.get('/', (req, res) => {
-	const title = 'Video Jotter';
-	res.render('index', {title: title}) // renders views/index.handlebars
+
+router.get("/", (req, res) => {
+  res.render("chats/chat");
 });
 
 //Login User
