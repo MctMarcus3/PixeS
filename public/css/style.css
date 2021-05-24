@@ -1,6 +1,12 @@
-
-
 .logo{
   width:130px;
   margin:auto;
+}
+
+
+.chat-input {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
 }
