@@ -59,6 +59,7 @@ router.post('/register', (req, res) => {
 
 // Login Form POST => /user/login
 router.post('/login', (req, res, next) => {
+    console.log("dbg");
     passport.authenticate('local', {
         successRedirect: '/video/listVideos', // Route to /video/listVideos URL
         failureRedirect: '/showLogin', // Route to /login URL

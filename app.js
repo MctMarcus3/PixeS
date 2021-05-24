@@ -16,7 +16,7 @@ const Handlebars = require('handlebars');
 const MySQLStore = require('express-mysql-session');
 const db = require('./config/db'); // db.js config file
 const passport = require('passport');
-
+const Group = require("./models/Group");
 
 
 // Import function exported by newly installed node modules.
@@ -166,5 +166,21 @@ io.on("connection", (socket) => {
 
     socket.on("new_message", (data) => {
         io.sockets.emit("new_message", {message: data.message, username: socket.username});
+    });
+
+	
+    socket.on("get_grp", (data) => {
+      var res = [];
+      Group.findAll().then((e) => {
+        e.forEach((d) => {
+          res.push(d.dataValues);
+        });
+        io.sockets.emit("groups", res);
+      });
+    });
+
+    socket.on("new_grp", (data) => {
+      console.log("ok grp");
+      Group.create({ name: data, grp_id: "111" });
     });
 })
