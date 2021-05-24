@@ -168,7 +168,6 @@ io.on("connection", (socket) => {
         io.sockets.emit("new_message", {message: data.message, username: socket.username});
     });
 
-	
     socket.on("get_grp", (data) => {
       var res = [];
       Group.findAll().then((e) => {
