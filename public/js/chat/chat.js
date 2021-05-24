@@ -39,11 +39,11 @@ $(function () {
     data.forEach((e) => {
       var elem = $(
         `<a class="nav-link collapsed" href="#">
-                          <i class="fas fa-fw fa-users"></i>
-                          <span>` +
+                            <i class="fas fa-fw fa-users"></i>
+                            <span>` +
           e.name +
           `</span>
-                      </a>`
+                        </a>`
       );
       $("#group-bind").append(elem);
     });
@@ -60,51 +60,7 @@ $(function () {
     socket.emit("get_grp");
   });
 
-
   setInterval(() => {
     socket.emit("get_grp");
   }, 100);
-
-	socket.on('typing', (data) => {
-		feedback.html("<p><i>" + data.username + " is typing a message..." + "</i></p>")
-	})
-
-    socket.on("groups", (data) => {
-      $("#group-bind").html("");
-      data.forEach((e) => {
-        var elem = $(
-          `<a class="nav-link collapsed" href="#">
-                            <i class="fas fa-fw fa-users"></i>
-                            <span>` +
-            e.name +
-            `</span>
-                        </a>`
-        );
-        $("#group-bind").append(elem);
-      });
-    });
-
-    $("#addUser").click(() => {
-      var data = prompt("Enter username");
-      socket.emit("get_grp", data);
-    });
-
-    $("#addGroup").click(() => {
-      var data = prompt("Enter group id");
-      socket.emit("new_grp", data);
-      socket.emit("get_grp");
-    });
-
-    setInterval(() => {
-      socket.emit("get_grp");
-    }, 100);
-});
-
-function addUser() {
-    var data = prompt("Enter username");
-};
-
-function addUser() {
-    var data = prompt("Enter group id");
-};
-
+}); 
