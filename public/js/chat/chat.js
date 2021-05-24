@@ -64,7 +64,6 @@ $(function () {
   setInterval(() => {
     socket.emit("get_grp");
   }, 100);
-});
 
 	socket.on('typing', (data) => {
 		feedback.html("<p><i>" + data.username + " is typing a message..." + "</i></p>")
