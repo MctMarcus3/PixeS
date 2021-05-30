@@ -3,3 +3,4 @@ config/db.js
 .git
 .vscode
 package-lock.json
+config/db.js
