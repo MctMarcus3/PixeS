@@ -23,6 +23,16 @@ router.get('/showregister', (req, res) => {
 	res.render('user/register');
 })
 
+//forgot password page
+router.get('/showForgot', (req, res) => {
+	res.render('user/forgot');
+})
+
+//user profile
+router.get('/showProfile', (req, res) =>{
+	res.render('user/profile')
+})
+
 //video
 // router.get('/video/listVideos',(req,res)=>{
 // 	const title='video list';

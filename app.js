@@ -16,7 +16,7 @@ const Handlebars = require("handlebars");
 const MySQLStore = require("express-mysql-session");
 const db = require("./config/db"); // db.js config file
 const passport = require("passport");
-const Group = require("./models/Group");
+const Group = require("./models/group");
 
 // Import function exported by newly installed node modules.
 const {
