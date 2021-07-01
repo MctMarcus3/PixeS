@@ -1,13 +1,7 @@
 module.exports = {
     host: 'localhost',
-    database: 'PixeS',
+    database: 'Pixes',
     username: 'pixesroot',
-    password: '2021Pixe$'
+    password: 'pixesroot'
 }
 
-module.exports = {
-  host: "localhost",
-  database: "lol",
-  username: "it2155",
-  password: "it2155",
-};

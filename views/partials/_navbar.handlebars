@@ -50,7 +50,7 @@
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-bell fa-fw"></i>
                                 <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">3+</span>
+                                {{!-- <span class="badge badge-danger badge-counter">3+</span> --}}
                             </a>
                             <!-- Dropdown - Alerts -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -94,13 +94,14 @@
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
                             </div>
                         </li>
+
                         <!-- Nav Item - Messages -->
                         <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">7</span>
+                                {{!-- <span class="badge badge-danger badge-counter">7</span> --}}
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -160,15 +161,27 @@
                             </div>
                         </li>
 
-                        <div class="topbar-divider d-none d-sm-block"></div>
+                        <div class="topbar-divider d-none d-sm-block"></div> 
 
-						<li class="nav-item">
-							<a href="/showlogin" class="nav-link">Login</a>
-						</li>
+				{{#if user}}
 
-						<li class="nav-item">
-						<a href="/showregister" class="nav-link">Register</a>
-						</li>
+					</li>
+					<li class="nav-item">
+						<a href="/logout" class="nav-link">Logout</a>
+					</li>
+
+					<li class="nav-item">
+						<a href="/showProfile" class="nav-link">{{user.name}}#{{user.id}}</a>
+					</li>
+				{{else}}
+					<li class="nav-item">
+						{{!-- main.js router(/login)--}}
+						<a href="/showLogin" class="nav-link">Login</a>
+					</li>
+					<li class="nav-item">
+						<a href="/showRegister" class="nav-link">Register</a>
+					</li>
+				{{/if}}
                         {{!-- <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"

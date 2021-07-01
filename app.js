@@ -16,7 +16,7 @@ const Handlebars = require("handlebars");
 const MySQLStore = require("express-mysql-session");
 const db = require("./config/db"); // db.js config file
 const passport = require("passport");
-const Group = require("./models/Group");
+const Group = require("./models/group");
 
 // Import function exported by newly installed node modules.
 const {
@@ -39,6 +39,7 @@ authenticate.localStrategy(passport);
 const mainRoute = require("./routes/main");
 const userRoute = require("./routes/user");
 const videoRoute = require("./routes/video");
+const taskRoute = require("./routes/task");
 const chatRoute = require("./routes/chat");
 
 const { formatDate } = require("./helpers/hbs");
@@ -146,6 +147,7 @@ app.use("/", mainRoute); // mainRoute is declared to point to routes/main.js
 app.use("/user", userRoute);
 app.use("/video", videoRoute);
 app.use("/chat", chatRoute);
+app.use("/task", taskRoute);
 // This route maps the root URL to any path defined in main.js
 
 /*

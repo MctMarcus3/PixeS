@@ -4,6 +4,28 @@ const User = require('../models/User');
 const alertMessage = require('../helpers/messenger');
 const passport = require('passport');
 var bcrypt = require('bcryptjs');
+const flash = require("connect-flash");
+
+
+//Register User
+router.get('/showregister', (req, res) => {
+	res.render('user/register');
+})
+
+//forgot password page
+router.get('/showForgot', (req, res) => {
+	res.render('user/forgot');
+})
+
+//user profile
+router.get('/showProfile', (req, res) =>{
+	res.render('user/profile')
+})
+
+router.get('/updateAccount/:id', (req, res) =>{
+    req.flash('id', req.params.id)
+	res.render('user/update')
+})
 
 // User register URL using HTTP post => /user/register
 router.post('/register', (req, res) => {
@@ -61,13 +83,40 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res, next) => {
     console.log("dbg");
     passport.authenticate('local', {
-        successRedirect: '/video/listVideos', // Route to /video/listVideos URL
+        successRedirect: '/chat', // Route to /video/listVideos URL
         failureRedirect: '/showLogin', // Route to /login URL
         failureFlash: true
         /* Setting the failureFlash option to true instructs Passport to flash an error message using the
        message given by the strategy's verify callback, if any. When a failure occur passport passes the message
        object as error */
     })(req, res, next);
+});
+
+router.post('/update', (req, res) => {
+    let id = req.flash('id')
+    let errors = []
+    let success_msg = '';
+
+    // Excercise 3
+    let { name, email, password, password2 } = req.body;
+    if (errors.length > 0) {
+        res.render('user/update', {
+            errors,
+            name,
+            email
+        });
+    } else {
+        // If all is well, checks if user is already registered
+            // update existing user record
+            User.update({name: name}, {where: {id: id} })
+            User.update({email: email}, {where: {id: id} })
+                .then(user => {
+                    let msg = user.email + 'updated succesfully';
+                    alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                    res.redirect('/user/showProfile');
+                })
+                .catch(err => console.log(err));
+    }
 });
 
 module.exports = router;
