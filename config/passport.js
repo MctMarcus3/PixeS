@@ -12,6 +12,7 @@ function localStrategy(passport) {
                 }
                 // Match password
                 bcrypt.compare(password, user.password, (err, isMatch) => {
+                    console.log(password, user.password)
                     if (err) throw err;
                     if (isMatch) {
                         console.log("Successfully");

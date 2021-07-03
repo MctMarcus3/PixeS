@@ -5,22 +5,8 @@ const alertMessage = require('../helpers/messenger');
 const passport = require('passport');
 var bcrypt = require('bcryptjs');
 const flash = require("connect-flash");
-
-
-//Register User
-router.get('/showregister', (req, res) => {
-	res.render('user/register');
-})
-
-//forgot password page
-router.get('/showForgot', (req, res) => {
-	res.render('user/forgot');
-})
-
-//user profile
-router.get('/showProfile', (req, res) =>{
-	res.render('user/profile')
-})
+const JWT_SECRET = 'some super secret...'
+const jwt = require("jsonwebtoken");
 
 router.get('/updateAccount/:id', (req, res) =>{
     req.flash('id', req.params.id)
@@ -81,7 +67,6 @@ router.post('/register', (req, res) => {
 
 // Login Form POST => /user/login
 router.post('/login', (req, res, next) => {
-    console.log("dbg");
     passport.authenticate('local', {
         successRedirect: '/chat', // Route to /video/listVideos URL
         failureRedirect: '/showLogin', // Route to /login URL
@@ -113,11 +98,97 @@ router.post('/update', (req, res) => {
                 .then(user => {
                     let msg = user.email + 'updated succesfully';
                     alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
-                    res.redirect('/user/showProfile');
+                    res.redirect('/showProfile');
                 })
                 .catch(err => console.log(err));
     }
 });
+
+router.post('/showForgot', (req, res, next) => {
+    let {email} = req.body;
+	console.log(email);
+    User.findOne({ where: { email: email } })
+            .then(user => {
+                if (user) {
+                    const secret = JWT_SECRET + user.password
+                    const payload = {
+                        email: user.email,
+                        id: user.id
+                    }
+                    const token = jwt.sign(payload, secret, {expiresIn: "15m"})
+                    const link = `http://localhost:5000/user/reset-password/${user.id}/${token}`;
+                    console.log(link);
+                }
+                else {
+                    let msg = email + 'not registered';
+                    alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                    console.log("not registered")
+                }
+            });
+})
+
+router.get('/reset-password/:id/:token', (req, res) =>{
+	const {id, token} = req.params;
+	User.findOne({ where: { id: id } })
+            .then(user => {
+                if (user) {
+                    const secret = JWT_SECRET + user.password;
+					try{
+						const payload = jwt.verify(token, secret);
+						res.render('user/reset-password', {email: user.email});
+					}finally{}
+                }
+                else {
+                    let msg = 'Invalid ID';
+                    alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                    console.log("Invalid ID");
+                }
+            });
+})
+
+router.post('/reset-password/:id/:token', (req, res, next) =>{
+    const {id, token} = req.params;
+    let { password, password2 } = req.body;
+    let errors = []
+    User.findOne({ where: { id: id } })
+            .then(user => {
+                if (user) {
+                    if (password !== password2) {
+                        errors.push({ text: 'Passwords do not match' });
+                        console.log("passwords match")
+                    }
+                    if (password.length < 4) {
+                        errors.push({ text: 'Password must be at least 4 characters' });
+                        console.log("through")
+                    }
+                    if (errors.length > 0) {
+                        res.render('user/register', {
+                            errors,
+                            password,
+                            password2
+                        });
+                    }else{
+                        bcrypt.genSalt(10, function (err, salt) {
+                            bcrypt.hash(password, salt, function (err, hash) {
+                                if (err) throw err;
+                                User.update({password:hash}, {where: {id: id} })
+                                .then(user => {
+                                    let msg = user.email + 'password changed succesfully';
+                                    alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                    res.redirect('/showLogin');
+                                })
+                                .catch(err => console.log(err));
+                            })
+                        });
+                    }
+                }
+                else{
+                    let msg = 'Invalid ID';
+                    alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                    console.log("Invalid ID");
+                }
+            });
+})
 
 module.exports = router;
 
