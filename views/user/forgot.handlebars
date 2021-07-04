@@ -3,10 +3,10 @@
 		<div class="card card-body">
 			<img class="logo" src="/img/logo.png">
 			<h3 class="text-center">Forgot Password</h3>
-			<form method="post" action="/user/login"> 
+			<form method="POST" action="user/showForgot"> 
 				<div class="form-group">
 					<label for="email">Email</label>
-					<input type="email" name="email" class="form-control" required>
+					<input type="email" id = "email" name="email" class="form-control" required>
 				</div>
 				<button type="submit" class="btn btn-primary">Submit</button> 
 			</form>

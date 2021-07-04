@@ -72,10 +72,11 @@ app.engine(
   })
 );
 app.set("view engine", "handlebars");
+app.use(express.json());
 
 // Body parser middleware to parse HTTP body in order to read HTTP data
 app.use(
-  bodyParser.urlencoded({
+  express.urlencoded({
     extended: false,
   })
 );
@@ -148,6 +149,7 @@ app.use("/user", userRoute);
 app.use("/video", videoRoute);
 app.use("/chat", chatRoute);
 app.use("/task", taskRoute);
+
 // This route maps the root URL to any path defined in main.js
 
 /*
