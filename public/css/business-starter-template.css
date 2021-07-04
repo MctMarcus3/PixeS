@@ -350,6 +350,11 @@ html[data-w-dynpage] [data-w-cloak] {
     color: transparent !important
 }
 
+.w-webflow-badge,
+.w-webflow-badge * {
+    display: none
+}
+
 h1,
 h2,
 h3,
@@ -2213,7 +2218,6 @@ a:active {
 }
 
 ul {
-    margin-top: 20px;
     margin-bottom: 10px;
     padding-left: 40px;
     list-style-type: disc;
@@ -2631,31 +2635,7 @@ figcaption {
 }
 
 .webflow-link {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-    opacity: 0.5;
-    -webkit-transition: opacity 400ms ease;
-    transition: opacity 400ms ease;
-    text-decoration: none;
-}
-
-.webflow-link:hover {
-    opacity: 1;
-}
-
-.webflow-link:active {
-    opacity: 0.8;
-}
-
-.webflow-logo-tiny {
-    margin-top: -2px;
-    margin-right: 8px;
+    display: none;
 }
 
 .cta-text {
