@@ -45,6 +45,9 @@ $(function () {
           `</span>
                         </a>`
       );
+      elem.on("click", () => {
+        window.location.href = "groups/" + e.name;
+      });
       $("#group-bind").append(elem);
     });
   });
@@ -62,5 +65,5 @@ $(function () {
 
   setInterval(() => {
     socket.emit("get_grp");
-  }, 100);
+  }, 2000);
 }); 
