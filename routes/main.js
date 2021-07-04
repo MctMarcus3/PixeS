@@ -12,6 +12,10 @@ router.get("/group", (req, res) => {
   res.render("chats/chat");
 });
 
+router.get("/groups/:id", (req, res) => {
+  res.render("chats/group");
+});
+
 //Login User
 router.get('/showLogin', (req,res)=>{
 	const title = 'Login';

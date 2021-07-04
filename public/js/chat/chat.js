@@ -65,5 +65,5 @@ $(function () {
 
   setInterval(() => {
     socket.emit("get_grp");
-  }, 100);
+  }, 2000);
 }); 
