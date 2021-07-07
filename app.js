@@ -41,6 +41,7 @@ const userRoute = require("./routes/user");
 const videoRoute = require("./routes/video");
 const taskRoute = require("./routes/task");
 const chatRoute = require("./routes/chat");
+const noteRoute = require("./routes/notes");
 
 const { formatDate } = require("./helpers/hbs");
 
@@ -149,7 +150,7 @@ app.use("/user", userRoute);
 app.use("/video", videoRoute);
 app.use("/chat", chatRoute);
 app.use("/task", taskRoute);
-
+app.use("/notes", noteRoute);
 // This route maps the root URL to any path defined in main.js
 
 /*

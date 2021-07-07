@@ -1,0 +1,185 @@
+<style>
+  [contenteditable] {
+  outline: 0px solid transparent;
+}
+
+</style>
+
+
+<body>
+
+
+
+  <button type="button" class="button" onclick="createNewNote()">
+    <span class="button__text">New</span>
+    <span class="button__icon">
+      <ion-icon name="add-circle-outline"></ion-icon>
+    </span>
+  </button>
+  
+  <div id="note_space">
+    <div id="notes"></div>
+  </div>
+</body>
+
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+  var namee = "{{name}}";
+  var name2 = JSON.parse("{{name}}");
+  console.log(name2);
+  
+  //src="../../models/note.js"
+  var notes_list = [];
+  var count = 0
+  var note_count = 0
+  //var title = document.getElementById("lol")
+  //title.setAttribute("style", "position: absolute;border: 1px solid blue;width: 300px;height: 100px;top: 70px;left: 15px; ")
+  class Note {
+    constructor(x, y, height, width,text) {
+      this.x = x;
+      this.y = y;
+      this.height = height;
+      this.width = width;
+      this.text = text
+      this.id = note_count
+      this.obj = null
+      note_count += 1
+      
+
+    };
+    
+
+    
+    CreateNote() {
+      var div = document.createElement("div");
+      div.className = "note"
+      div.id = "note" + this.id
+      div.onmousedown = "move_div(div)"
+      div.style.position = "absolute";
+      div.style.border = "1px solid #000";
+      div.style.width = this.width.toString() + "px";
+      div.style.height = this.height.toString() + "px";
+      div.style.left = (this.x + count).toString() + "px";
+      div.style.top = this.y.toString() + "px";
+      div.style.backgroundColor = "rgb(255,255,0)";
+      div.style.color = "blue";
+      //div.style.height = "50vh";
+      div.style.display = "flex";
+      div.style.alignItems = "center";
+      div.style.justifyContent = "center";
+
+      var text = document.createElement("p");
+      text.className = "text"
+      text.contentEditable = "true"
+      text.innerHTML = this.text
+      div.appendChild(text)
+      document.getElementById("notes").appendChild(div);
+      this.obj = div;
+      
+    };
+    update(){
+      
+      var id,text,x,y;
+      
+      var t = this.text;
+      
+          $.post("notes/updatenote",{id:this.id, text:this.text, x:this.x, y:this.y}
+          );
+      
+    };
+
+
+  };
+  function createNewNote() {
+    
+    const new1 = new Note(250, 150, 300, 300,"New Note");
+
+
+    count += 50;
+    new1.CreateNote();
+    notes_list.push(new1);
+    
+    move_div(new1);
+ 
+    
+
+  };
+  var clicked = get_clicked();
+  
+  function get_clicked() {
+    var re = document.addEventListener('click', function (e) {
+      e = e || window.event;
+      var target = e.target || e.srcElement,
+        text = target.textContent || target.innerText;
+        
+        return target
+    }, false);
+
+  };
+document.onkeydown = function (e) {
+    e = e || window.event;
+    var key = event.keyCode || event.charCode;
+
+    if( key){
+      for (let i = 0; i < notes_list.length; i++) {
+      se_note = notes_list[i];
+      if (se_note.obj.innerHTML != se_note.text){
+        se_note.text = se_note.obj.innerHTML
+        se_note.update()
+
+      }
+      };
+      
+    };
+    
+};
+
+
+  function move_div(ele) {
+
+    var el = ele.obj
+
+    el.onmousedown = mousedown;
+    
+    function mousedown(e) {
+       
+      window.addEventListener("mousemove", mousemove);
+      window.addEventListener("mouseup", mouseup);
+
+      let prevX = e.clientX;
+      let prevY = e.clientY;
+
+
+      function mousemove(e) {
+        let newX = prevX - e.clientX;
+        let newY = prevY - e.clientY;
+        
+        const rect = el.getBoundingClientRect();
+        el.style.left = rect.left - newX + "px";
+        el.style.top = rect.top - newY + "px";
+        
+
+        ele.x = el.style.left;
+        ele.y = el.style.top;
+        
+        
+        prevX = e.clientX;
+        prevY = e.clientY;
+      }
+      function mouseup() {
+        window.removeEventListener('mousemove', mousemove);
+        window.removeEventListener('mouseup', mouseup);
+        ele.update();
+      }
+    }
+
+  }
+
+  //const new1 = new Note(250, 150, 300, 300);
+  //new1.DisplayNote();
+</script>
+
+</body>
