@@ -18,7 +18,6 @@ router.get("/groups/:id", (req, res) => {
 
 //Login User
 router.get('/showLogin', (req, res) => {
-    const title = 'Login';
     res.render('user/login')
 })
 

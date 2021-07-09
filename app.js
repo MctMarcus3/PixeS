@@ -16,7 +16,6 @@ const Handlebars = require("handlebars");
 const MySQLStore = require("express-mysql-session");
 const db = require("./config/db"); // db.js config file
 const passport = require("passport");
-const Group = require("./models/group");
 
 const socks = require("./helpers/socks");
 
@@ -46,6 +45,14 @@ const chatRoute = require("./routes/chat");
 const noteRoute = require("./routes/notes");
 
 const { formatDate } = require("./helpers/hbs");
+
+const publicPath = path.join(__dirname, "public");
+
+/*
+ * Creates a unknown port 5000 for express server since we don't want our app to clash with well known
+ * ports such as 80 or 8080.
+ * */
+const port = process.env.PORT || 5000;
 
 /*
  * Creates an Express server - Express is a web application framework for creating web applications
@@ -86,7 +93,7 @@ app.use(
 app.use(bodyParser.json());
 
 // Creates static folder for publicly accessible HTML, CSS and Javascript files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(publicPath));
 
 // Method override middleware to use other HTTP methods such as PUT and DELETE
 app.use(methodOverride("_method"));
@@ -154,12 +161,6 @@ app.use("/chat", chatRoute.router);
 app.use("/task", taskRoute);
 app.use("/notes", noteRoute);
 // This route maps the root URL to any path defined in main.js
-
-/*
- * Creates a unknown port 5000 for express server since we don't want our app to clash with well known
- * ports such as 80 or 8080.
- * */
-const port = 5000;
 
 // Starts the server and listen to port 5000
 let server = app.listen(port, () => {

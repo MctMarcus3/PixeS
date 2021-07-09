@@ -2,12 +2,12 @@ const io = require('socket.io')();
 const Group = require("../models/Group");
 const Chat = require("../models/Chat");
 
+module.exports.io = io;
+
 module.exports.checkLoggedIn = function(req)
 {
-    return req.user != null;
+  return req.user != null;
 }
-
-module.exports.io = io;
 
 module.exports.setServer = function(s) {
     if (s) 
@@ -47,22 +47,20 @@ io.on("connection", (socket) => {
       });
     }
   
-    /**socket.on("change_username", (data) => {
-      socket.username = data.username;
-    });**/
-
-    socket.on("join_channel", (data) => {
-      console.log(data);
+    socket.on("join", (channel) => {
+      socket.join(channel);
     });
+
+    socket.on("typing", (data) => {
+      socket.emit("typing", data);
+    })
   
     socket.on("new_message", (data) => {
         let target = data.channel;
-        console.log(data);
         let uid = (socket.userID == null) ? -1 : socket.userID;
-        console.log(uid);
 
         Chat.create({channelid: target, userid: uid, text: data.message});
-        io.emit("new_message", {
+        io.in(target).emit("new_message", {
             message: data.message,
             username: socket.username,
             target: target

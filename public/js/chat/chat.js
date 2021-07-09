@@ -3,29 +3,31 @@ $(function () {
   let lmaowtf = window.location.pathname.split('/');
 
   let message = $("#message");
-  let username = $("#username");
+  //let username = $("#username");
   let send_message = $("#send_message");
-  let send_username = $("#send_username");
+  //let send_username = $("#send_username");
   let chatroom = $("#chatroom");
   let feedback = $("#feedback");
 
-  send_message.click(function () {
-    let channelType = null;
-    let channelID = null;
+  let channelType = null;
+  let channelID = null;
+  let channel = "public";
 
-    let channel = "public";
+  if (lmaowtf.length >= 3)
+  {
+    channelType = lmaowtf[2] || null;
+    channelID = lmaowtf[3] || null;
 
-    if (lmaowtf.length >= 3)
+    if (channelType != null && channelID != null)
     {
-      channelType = lmaowtf[2] || null;
-      channelID = lmaowtf[3] || null;
-
-      if (channelType != null && channelID != null)
-      {
-        channel = `${channelType.toLowerCase()}${channelID}`;
-      }
+      channel = `${channelType.toLowerCase()}${channelID}`;
     }
+  }
 
+  socket.emit("join", channel);
+  socket.target = channel;
+
+  send_message.click(function () {
     socket.emit("new_message", {channel: channel, message: message.val() });
   });
 
@@ -33,68 +35,13 @@ $(function () {
     feedback.html("");
     message.val("");
 
-    let currentChannel = null;
-    let target = data.target;
-
-    if (lmaowtf.length >= 3)
-    {
-      channelType = lmaowtf[2] || null;
-      channelID = lmaowtf[3] || null;
-
-      if (channelType != null && channelID != null)
-      {
-        currentChannel = `${channelType.toLowerCase()}${channelID}`;
-      }
-    }
-    else if (lmaowtf.length >= 2)
-    {
-      if (lmaowtf[1].toLowerCase() == "chat")
-      {
-        currentChannel = "public";
-      }
-    }
-
-    if (target == currentChannel)
-    {
-      chatroom.append(
-        '<p class="message">' + data.username + ": " + data.message + "</p>"
-      );
-    }
-    /**if (lmaowtf.length >= 3)
-    {
-      channelType = lmaowtf[2] || null;
-      channelID = lmaowtf[3] || null;
-    }
-
-    if (channelType == null && channelID == null)
-    {
-      if (data.target == null)
-      {
-        chatroom.append(
-          '<p class="message">' + data.username + ": " + data.message + "</p>"
-        );
-      }
-    }
-    else if (data.target == `${channelType.toLowerCase()}${channelID}`)
-    {
-      chatroom.append(
-        '<p class="message">' + data.username + ": " + data.message + "</p>"
-      );
-    }**/
-  });
-
-  send_username.click(function () {
-    socket.emit("change_username", { username: username.val() });
+    chatroom.append(
+      '<p class="message">' + data.username + ": " + data.message + "</p>"
+    );
   });
 
   message.bind("keypress", () => {
     socket.emit("typing");
-  });
-
-  socket.on("typing", (data) => {
-    feedback.html(
-      "<p><i>" + data.username + " is typing a message..." + "</i></p>"
-    );
   });
 
   socket.on("groups", (data) => {
@@ -121,7 +68,7 @@ $(function () {
     let gid = prompt("Enter group id");
     let gname = prompt("Enter group name");
 
-    let data = {name: gname, id:id};
+    let data = {name: gname, id:gid};
 
     socket.emit("new_grp", data);
     socket.emit("get_grp");
