@@ -48,7 +48,15 @@ io.on("connection", (socket) => {
     }
   
     socket.on("join", (channel) => {
-      socket.join(channel);
+      //console.log(channel);
+      let messages = [];
+      Chat.findAll({where: {channelid: channel}}).then((c) => {
+        c.forEach((d) => {
+          messages.push(d.dataValues);
+        });
+        //console.log(messages);
+        socket.join(channel);
+      })
     });
 
     socket.on("typing", (data) => {

@@ -1,3 +1,21 @@
+function getChannel(l)
+{
+  let length = l.length;
+  let defaultChannel = "public";
+
+  if (length >= 4)
+  {
+    let t = l[2];
+    let i = [3];
+
+    return `${t}${i}`;
+  }
+  else
+  {
+    return defaultChannel;
+  }
+}
+
 $(function () {
   let socket = io.connect("http://localhost:5000");
   let lmaowtf = window.location.pathname.split('/');
@@ -9,20 +27,7 @@ $(function () {
   let chatroom = $("#chatroom");
   let feedback = $("#feedback");
 
-  let channelType = null;
-  let channelID = null;
-  let channel = "public";
-
-  if (lmaowtf.length >= 3)
-  {
-    channelType = lmaowtf[2] || null;
-    channelID = lmaowtf[3] || null;
-
-    if (channelType != null && channelID != null)
-    {
-      channel = `${channelType.toLowerCase()}${channelID}`;
-    }
-  }
+  let channel = getChannel(lmaowtf);
 
   socket.emit("join", channel);
   socket.target = channel;
@@ -65,10 +70,9 @@ $(function () {
   });
 
   $("#addGroup").click(() => {
-    let gid = prompt("Enter group id");
     let gname = prompt("Enter group name");
 
-    let data = {name: gname, id:gid};
+    let data = {name: gname};
 
     socket.emit("new_grp", data);
     socket.emit("get_grp");
