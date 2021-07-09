@@ -18,6 +18,8 @@ const db = require("./config/db"); // db.js config file
 const passport = require("passport");
 const Group = require("./models/group");
 
+const socks = require("./helpers/socks");
+
 // Import function exported by newly installed node modules.
 const {
   allowInsecurePrototypeAccess,
@@ -148,7 +150,7 @@ app.use(function (req, res, next) {
 app.use("/", mainRoute); // mainRoute is declared to point to routes/main.js
 app.use("/user", userRoute);
 app.use("/video", videoRoute);
-app.use("/chat", chatRoute);
+app.use("/chat", chatRoute.router);
 app.use("/task", taskRoute);
 app.use("/notes", noteRoute);
 // This route maps the root URL to any path defined in main.js
@@ -164,36 +166,4 @@ let server = app.listen(port, () => {
   console.log(`Server started on port ${server.address().port}`);
 });
 
-const io = require("socket.io")(server);
-
-io.on("connection", (socket) => {
-  console.log("New User Connected!");
-
-  socket.username = "Anonymous";
-
-  socket.on("change_username", (data) => {
-    socket.username = data.username;
-  });
-
-  socket.on("new_message", (data) => {
-    io.sockets.emit("new_message", {
-      message: data.message,
-      username: socket.username,
-    });
-  });
-
-  socket.on("get_grp", (data) => {
-    var res = [];
-    Group.findAll().then((e) => {
-      e.forEach((d) => {
-        res.push(d.dataValues);
-      });
-      io.sockets.emit("groups", res);
-    });
-  });
-
-  socket.on("new_grp", (data) => {
-    console.log("ok grp");
-    Group.create({ name: data, grp_id: "111" });
-  });
-});
+socks.setServer(server);
