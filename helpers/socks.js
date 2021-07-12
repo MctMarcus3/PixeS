@@ -31,22 +31,12 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-    const users = [];
     console.log("LOG: [EVENT=connection] New client connected.");
 
     socket.on('disconnect', function() {
         console.log("LOG: [EVENT=disconnect] A client has disconnected.");
     });
 
-    for (let [id, socket] of io.of("/").sockets)
-    {
-      users.push({
-        socketID: id,
-        userID: socket.userid,
-        username: socket.username
-      });
-    }
-  
     socket.on("join", (channel) => {
       //console.log(channel);
       let messages = [];
@@ -76,13 +66,49 @@ io.on("connection", (socket) => {
     });
   
     socket.on("get_grp", (data) => {
-      var res = [];
+      let res = [];
       Group.findAll().then((e) => {
         e.forEach((d) => {
           res.push(d.dataValues);
         });
         io.sockets.emit("groups", res);
       });
+    });
+
+    socket.on("update_users", (data) => {
+      let res = [];
+      let rooms = io.of("/").adapter.rooms;
+      let roomNo = 0;
+      
+      if (data != null)
+      {
+        let connectedSockets = rooms.get(data);
+        
+        if (connectedSockets != null)
+        {
+          let socketArr = Array.from(connectedSockets);
+
+          for (let i = 0; i < socketArr.length; i++)
+          {
+            let s0 = socketArr[i];
+            let s1 = io.sockets.sockets;
+
+            if (s1.has(s0))
+            {
+              let s = s1.get(s0);
+              let userData = {UID: s.userID, username: s.username};
+
+              roomNo = s.adapter.rooms.length;
+
+              res.push(userData);
+            }
+          }
+        }
+
+        let d = {res, roomNo};
+
+        io.sockets.in(data).emit("update_users", d);
+      }
     });
   
     socket.on("new_grp", (data) => {

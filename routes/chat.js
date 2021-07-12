@@ -15,6 +15,7 @@ function initSocketClient(req)
     socket.username = userData.name;
     socket.userID = userData.id;
     socket.target = target;
+    socket.data = userData;
             
     //socket.emit("join", target);
   })
@@ -37,7 +38,7 @@ router.get("/user/:id", (req, res) => {
   if (socks.checkLoggedIn(req))
   {
     User.findOne({where: {id: uid}}).then((u) => {
-      initSocketClient(req);
+      initSocketClient();
       res.render("chats/user", {uname: u.dataValues.name});
     });
   }

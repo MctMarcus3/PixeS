@@ -5,10 +5,11 @@ function getChannel(l)
 
   if (length >= 4)
   {
-    let t = l[2];
+    let t = l[2].toLowerCase();
     let i = [3];
 
-    return `${t}${i}`;
+    if (t == "user") return `${i}`;
+    else return `${t}${i}`;
   }
   else
   {
@@ -98,11 +99,19 @@ $(function () {
     }
   });
 
+  socket.on("update_users", (data) => {
+    for (let i = 0; i < data.length; i++)
+    {
+      console.log(data[i]);
+    }
+  });
+
   socket.on("new_user", (user) => {
     this.users.push(user);
   });
 
   setInterval(() => {
     socket.emit("get_grp");
+    socket.emit("update_users", getChannel(lmaowtf));
   }, 2000);
 }); 
