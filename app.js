@@ -45,6 +45,7 @@ const chatRoute = require("./routes/chat");
 const noteRoute = require("./routes/notes");
 
 const { formatDate } = require("./helpers/hbs");
+const { reset } = require("nodemon");
 
 const publicPath = path.join(__dirname, "public");
 
@@ -149,18 +150,33 @@ app.use(function (req, res, next) {
   next();
 });
 
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+  else
+    res.redirect('/')
+}
+
 // Use Routes
 /*
  * Defines that any root URL with '/' that Node JS receives request from, for eg. http://localhost:5000/, will be handled by
  * mainRoute which was defined earlier to point to routes/main.js
  * */
-app.use("/", mainRoute); // mainRoute is declared to point to routes/main.js
-app.use("/user", userRoute);
+app.use("/",  mainRoute); // mainRoute is declared to point to routes/main.js
+app.use("/user",  userRoute);
 app.use("/video", videoRoute);
 app.use("/chat", chatRoute.router);
-app.use("/task", taskRoute);
-app.use("/notes", noteRoute);
+app.use("/task", ensureAuthenticated, taskRoute);
+app.use("/notes", noteRoute); 
 // This route maps the root URL to any path defined in main.js
+
+app.use(function(req, res, next) {
+  res.send('404: Page not found', 400)
+});
+
+app.use(function(req, res, next) {
+  res.send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
+});
 
 // Starts the server and listen to port 5000
 let server = app.listen(port, () => {
