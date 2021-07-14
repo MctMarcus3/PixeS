@@ -165,17 +165,17 @@ function ensureAuthenticated(req, res, next) {
 app.use("/",  mainRoute); // mainRoute is declared to point to routes/main.js
 app.use("/user",  userRoute);
 app.use("/video", videoRoute);
-app.use("/chat", chatRoute.router);
+app.use("/chat", ensureAuthenticated, chatRoute.router);
 app.use("/task", ensureAuthenticated, taskRoute);
 app.use("/notes", noteRoute); 
 // This route maps the root URL to any path defined in main.js
 
 app.use(function(req, res, next) {
-  res.send('404: Page not found', 400)
+  res.status(400).send('404: Page not found')
 });
 
 app.use(function(req, res, next) {
-  res.send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
+  res.status(500).send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
 });
 
 // Starts the server and listen to port 5000
