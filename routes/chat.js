@@ -10,11 +10,8 @@ function initSocketClient(req)
 {
   let userData = req.user.dataValues;
   socks.io.on("connection", (socket) => {
-    let target = "public";
-            
     socket.username = userData.name;
     socket.userID = userData.id;
-    socket.target = target;
     socket.data = userData;
             
     //socket.emit("join", target);
@@ -38,7 +35,7 @@ router.get("/user/:id", (req, res) => {
   if (socks.checkLoggedIn(req))
   {
     User.findOne({where: {id: uid}}).then((u) => {
-      initSocketClient();
+      initSocketClient(req);
       res.render("chats/user", {uname: u.dataValues.name});
     });
   }
