@@ -10,11 +10,14 @@ const Note = db.define('note', {
     },
     text: {
         type: Sequelize.STRING
-    },
+    }, 
     x: {
         type: Sequelize.INTEGER
     },
     y: {
+        type: Sequelize.INTEGER
+    },
+    g_id: {
         type: Sequelize.INTEGER
     }
 });
