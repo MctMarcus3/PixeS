@@ -3,4 +3,6 @@ module.exports = {
     database: 'pixes',
     username: 'pixesroot',
     password: 'pixesroot'
+
 }
+

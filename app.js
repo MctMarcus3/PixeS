@@ -16,7 +16,8 @@ const Handlebars = require("handlebars");
 const MySQLStore = require("express-mysql-session");
 const db = require("./config/db"); // db.js config file
 const passport = require("passport");
-const Group = require("./models/group");
+
+const socks = require("./helpers/socks");
 
 // Import function exported by newly installed node modules.
 const {
@@ -44,6 +45,15 @@ const chatRoute = require("./routes/chat");
 const noteRoute = require("./routes/notes");
 
 const { formatDate } = require("./helpers/hbs");
+const { reset } = require("nodemon");
+
+const publicPath = path.join(__dirname, "public");
+
+/*
+ * Creates a unknown port 5000 for express server since we don't want our app to clash with well known
+ * ports such as 80 or 8080.
+ * */
+const port = process.env.PORT || 5000;
 
 /*
  * Creates an Express server - Express is a web application framework for creating web applications
@@ -84,7 +94,7 @@ app.use(
 app.use(bodyParser.json());
 
 // Creates static folder for publicly accessible HTML, CSS and Javascript files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(publicPath));
 
 // Method override middleware to use other HTTP methods such as PUT and DELETE
 app.use(methodOverride("_method"));
@@ -140,60 +150,37 @@ app.use(function (req, res, next) {
   next();
 });
 
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+  else
+    res.redirect('/')
+}
+
 // Use Routes
 /*
  * Defines that any root URL with '/' that Node JS receives request from, for eg. http://localhost:5000/, will be handled by
  * mainRoute which was defined earlier to point to routes/main.js
  * */
-app.use("/", mainRoute); // mainRoute is declared to point to routes/main.js
-app.use("/user", userRoute);
+app.use("/",  mainRoute); // mainRoute is declared to point to routes/main.js
+app.use("/user",  userRoute);
 app.use("/video", videoRoute);
-app.use("/chat", chatRoute);
-app.use("/task", taskRoute);
-app.use("/notes", noteRoute);
+app.use("/chat", ensureAuthenticated, chatRoute.router);
+app.use("/task", ensureAuthenticated, taskRoute);
+app.use("/notes", noteRoute); 
 // This route maps the root URL to any path defined in main.js
 
-/*
- * Creates a unknown port 5000 for express server since we don't want our app to clash with well known
- * ports such as 80 or 8080.
- * */
-const port = 5000;
+app.use(function(req, res, next) {
+  res.status(400).send('404: Page not found')
+});
+
+app.use(function(req, res, next) {
+  res.status(500).send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
+});
 
 // Starts the server and listen to port 5000
 let server = app.listen(port, () => {
   console.log(`Server started on port ${server.address().port}`);
 });
 
-const io = require("socket.io")(server);
-
-io.on("connection", (socket) => {
-  console.log("New User Connected!");
-
-  socket.username = "Anonymous";
-
-  socket.on("change_username", (data) => {
-    socket.username = data.username;
-  });
-
-  socket.on("new_message", (data) => {
-    io.sockets.emit("new_message", {
-      message: data.message,
-      username: socket.username,
-    });
-  });
-
-  socket.on("get_grp", (data) => {
-    var res = [];
-    Group.findAll().then((e) => {
-      e.forEach((d) => {
-        res.push(d.dataValues);
-      });
-      io.sockets.emit("groups", res);
-    });
-  });
-
-  socket.on("new_grp", (data) => {
-    console.log("ok grp");
-    Group.create({ name: data, grp_id: "111" });
-  });
-});
+socks.setServer(server);
