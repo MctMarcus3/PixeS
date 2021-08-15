@@ -12,6 +12,10 @@ router.get('/updateAccount/:id', (req, res) => {
     req.flash('id', req.params.id)
     res.render('user/update')
 })
+router.get('/changePw/:id', (req, res) => {
+    req.flash('id', req.params.id)
+    res.render('user/changePassword')
+})
 
 // User register URL using HTTP post => /user/register
 router.post('/register', (req, res) => {
@@ -70,7 +74,7 @@ router.post('/login', (req, res, next) => {
     passport.authenticate('local', function(err, user, info) {
         if (err) return next(err);
         if (!user) return res.redirect("/showLogin");
-        
+
         req.logIn(user, function(err) {
             if (err) return next(err);
 
@@ -85,7 +89,7 @@ router.post('/update', (req, res) => {
     let success_msg = '';
 
     // Excercise 3
-    let { name, email, password, password2 } = req.body;
+    let { name, email } = req.body;
     if (errors.length > 0) {
         res.render('user/update', {
             errors,
@@ -93,7 +97,6 @@ router.post('/update', (req, res) => {
             email
         });
     } else {
-        // If all is well, checks if user is already registered
         // update existing user record
         User.update({ name: name }, { where: { id: id } })
         User.update({ email: email }, { where: { id: id } })
@@ -103,6 +106,57 @@ router.post('/update', (req, res) => {
                 res.redirect('/showProfile');
             })
             .catch(err => console.log(err));
+    }
+});
+
+router.post('/changePw', (req, res) => {
+    let id = req.flash('id')
+    let errors = []
+    let success_msg = '';
+
+    let { extPassword, password, password2 } = req.body;
+    if (password !== password2) {
+        errors.push({ text: 'Passwords do not match' });
+    }
+    // Checks that password length is more than 4
+    if (password.length < 4) {
+        errors.push({ text: 'Password must be at least 4 characters' });
+    }
+    if (errors.length > 0) {
+        res.render('user/changePassword', {
+            errors,
+        });
+    } else {
+        User.findOne({ where: { id: id } })
+            .then(user => {
+                if (!user) {
+                    return done(null, false, { message: 'No User Found' });
+                }
+                // Match password
+                bcrypt.compare(extPassword, user.password, (err, isMatch) => {
+                    console.log(extPassword, user.password)
+                    if (err) throw err;
+                    if (isMatch) {
+                        console.log("Successfully");
+                        bcrypt.genSalt(10, function(err, salt) {
+                            bcrypt.hash(password, salt, function(err, hash) {
+                                if (err) throw err;
+                                User.update({ password: hash }, { where: { id: id } })
+                                    .then(user => {
+                                        let msg = user.email + 'password changed succesfully';
+                                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                    })
+                                    .catch(err => console.log(err));
+                            })
+                        });;
+                    } else {
+                        console.log("password error");
+                        return done(null, false, {
+                            message: 'Password incorrect'
+                        });
+                    }
+                })
+            })
     }
 });
 
