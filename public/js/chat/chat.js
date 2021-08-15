@@ -64,6 +64,20 @@ $(function () {
       $("#group-bind").append(elem);
     });
   });
+  socket.on("groups", (data) => {
+    $("#group-note-bind").html("");
+    data.forEach((e) => { 
+      let elem = $(
+        `<a class="nav-link collapsed" href="/notes/${e.id}">
+                            <i class="fas fa-fw fa-users"></i>
+                            <span>` +
+          e.name + " notes" +
+          `</span>
+                        </a>`
+      );
+      $("#group-note-bind").append(elem);
+    });
+  });
 
   $("#addUser").click(() => {
     let data = prompt("Enter username");
