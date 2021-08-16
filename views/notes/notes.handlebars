@@ -93,12 +93,12 @@
       del.style.position = "absolute";
       del.style.right = 10 + "px";
       del.style.top = 10 + "px";
-      del.style.padding = "-2px 2px"
-      del.innerHTML = "X"
+      del.style.padding = "5px 5px"
+      del.innerHTML = ""
       del.onclick =function(){
       $.post("/notes/deletenote",{gid:groupid,id:div.id});
       window.location.href = "/notes/" + groupid;
-      return false;
+      
   };
       div.appendChild(del);
       
@@ -130,7 +130,7 @@
   function drawnotes(){
     
     for (i in sent_list){
-      console.log(alert(sent_list[i]))
+      
       
       const new_note = new Note(sent_list[i][0], sent_list[i][2], sent_list[i][3], 300, 300, sent_list[i][1],"yellow");
       //console.log(new_note.x)
