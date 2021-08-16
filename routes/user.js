@@ -1,12 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Friends = require('../models/Friends')
 const alertMessage = require('../helpers/messenger');
 const passport = require('passport');
 var bcrypt = require('bcryptjs');
 const flash = require("connect-flash");
 const JWT_SECRET = 'some super secret...'
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
+const sgMail = require('@sendgrid/mail');
+
+function sendEmail(userId, email, token) {
+    sgMail.setApiKey("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")
+
+    const message = {
+        to: email,
+        from: "ourpixesmail@gmail.com",
+        subject: "Change Account Password",
+        text: "Pixes Password Link",
+        html: `Please click on this link <br> <br> <a href="http://localhost:5000/user/reset-password/${userId}/${token}"> <strong>Change</strong></a> your password`
+    };
+    sgMail
+        .send(message)
+        .then((response) => {
+            console.log(response[0].statusCode)
+            console.log(response[0].headers)
+        })
+        .catch((error) => {
+            console.error(error)
+        });
+}
 
 router.get('/updateAccount/:id', (req, res) => {
     req.flash('id', req.params.id)
@@ -21,6 +45,7 @@ router.get('/changePw/:id', (req, res) => {
 router.post('/register', (req, res) => {
     let errors = []
     let success_msg = '';
+    let friendReq = null
 
     // Excercise 3
     let { name, email, password, password2 } = req.body;
@@ -55,7 +80,7 @@ router.post('/register', (req, res) => {
                     bcrypt.genSalt(10, function(err, salt) {
                         bcrypt.hash(password, salt, function(err, hash) {
                             if (err) throw err;
-                            User.create({ name, email, password: hash })
+                            User.create({ name, email, password: hash, friendReq })
                                 .then(user => {
                                     let msg = user.email + 'registered succesfully';
                                     alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
@@ -81,6 +106,89 @@ router.post('/login', (req, res, next) => {
             return res.redirect("/chat");
         });
     })(req, res, next);
+});
+
+router.post('/findFriend/:id', (req, res) => {
+    let existingid = req.params.id
+    let thing = req.body
+    let id = thing.id
+    let errors = []
+    let success_msg = '';
+    var found = "false";
+    console.log(id, existingid);
+
+    User.findOne({ where: { id: id } })
+        .then(user => {
+            if (!user) {
+                let msg = 'User not Found';
+                console.log(msg)
+                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                res.redirect("/showProfile");
+            } else {
+                Friends.findOne({
+                        where: {
+                            [Op.or]: [{
+                                    [Op.and]: [
+                                        { friend: id },
+                                        { friendsWith: existingid }
+                                    ]
+                                },
+                                {
+                                    [Op.and]: [
+                                        { friend: existingid },
+                                        { friendsWith: id }
+                                    ]
+                                }
+                            ]
+                        }
+                    })
+                    .then(friends => {
+                        if (friends) {
+                            let msg = 'Already friends';
+                            console.log(msg)
+                            alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                        } else {
+                            let status = '1'
+                            Friends.create({ friend: existingid, friendsWith: id, status })
+                            Friends.create({ friend: id, friendsWith: existingid, status })
+                                .then(friends => {
+                                    let msg = 'request sent';
+                                    console.log(msg)
+                                    alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                    res.redirect('/showProfile');
+                                })
+                        }
+                    })
+            }
+        });
+});
+
+router.post('/addFriend', (req, res) => {
+    let id = req.flash('id')
+    let friend = req.body
+    let friendId = friend.id
+    let errors = []
+    let success_msg = '';
+    console.log(id, existingid[-1]);
+
+    User.findOne({ where: { id: friendId } })
+        .then(user => {
+            if (!user) {
+                let msg = 'User not Found';
+                console.log(msg)
+                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+            } else {
+                // Create new friend record
+                Friends.create({ id, friendId })
+                    .then(user => {
+                        let msg = "Request Sent";
+                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                        res.redirect('/showProfile');
+                    })
+                    .catch(err => console.log(err));
+            }
+        });
+
 });
 
 router.post('/update', (req, res) => {
@@ -151,9 +259,6 @@ router.post('/changePw', (req, res) => {
                         });;
                     } else {
                         console.log("password error");
-                        return done(null, false, {
-                            message: 'Password incorrect'
-                        });
                     }
                 })
             })
@@ -172,6 +277,8 @@ router.post('/showForgot', (req, res, next) => {
                     id: user.id
                 }
                 const token = jwt.sign(payload, secret, { expiresIn: "15m" })
+                console.log(user.email)
+                sendEmail(user.id, user.email, token)
                 const link = `http://localhost:5000/user/reset-password/${user.id}/${token}`;
                 console.log(link);
             } else {

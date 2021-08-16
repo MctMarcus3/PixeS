@@ -12,12 +12,6 @@ const User = db.define('user', {
     },
     password: {
         type: Sequelize.STRING
-    },
-    friends: {
-        type: Sequelize.INTEGER
-    },
-    friendReq: {
-        type: Sequelize.INTEGER
     }
 });
 module.exports = User;
