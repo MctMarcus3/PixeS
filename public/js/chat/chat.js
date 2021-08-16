@@ -46,6 +46,37 @@ $(function () {
     );
   });
 
+  socket.on("history", (data) => {
+    let messages = data.m;
+    let users = data.u;
+    
+    for (let i = 0; i < messages.length; i++)
+    {
+      let msg = messages[i];
+      let mid = msg.id;
+      let userid = msg.userid;
+      let text = msg.text;
+
+      console.log(users[1]);
+
+      if (users[userid] != null)
+      {
+        let u = users[userid];
+        let uname = u.name;
+
+        chatroom.append(
+          `<p class="message" name=${mid}>` + uname + ": " + text + "</p>"
+        );
+      }
+      else
+      {
+        chatroom.append(
+          "<p class=\"message\">Error loading message(s).</p>"
+        );
+      }
+    }
+  })
+
   message.bind("keypress", () => {
     socket.emit("typing");
   });

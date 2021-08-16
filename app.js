@@ -21,7 +21,7 @@ const socks = require("./helpers/socks");
 
 // Import function exported by newly installed node modules.
 const {
-  allowInsecurePrototypeAccess,
+    allowInsecurePrototypeAccess,
 } = require("@handlebars/allow-prototype-access");
 
 // Bring in database connection
@@ -72,24 +72,24 @@ const app = express();
  *
  * */
 app.engine(
-  "handlebars",
-  exphbs({
-    helpers: {
-      formatDate: formatDate,
-    },
+    "handlebars",
+    exphbs({
+        helpers: {
+            formatDate: formatDate,
+        },
 
-    defaultLayout: "main", // Specify default template views/layout/main.handlebar
-    handlebars: allowInsecurePrototypeAccess(Handlebars),
-  })
+        defaultLayout: "main", // Specify default template views/layout/main.handlebar
+        handlebars: allowInsecurePrototypeAccess(Handlebars),
+    })
 );
 app.set("view engine", "handlebars");
 app.use(express.json());
 
 // Body parser middleware to parse HTTP body in order to read HTTP data
 app.use(
-  express.urlencoded({
-    extended: false,
-  })
+    express.urlencoded({
+        extended: false,
+    })
 );
 app.use(bodyParser.json());
 
@@ -104,24 +104,24 @@ app.use(cookieParser());
 
 // Express session middleware - uses MySQL to store session
 app.use(
-  session({
-    key: "vidjot_session",
-    secret: "tojiv",
-    store: new MySQLStore({
-      host: db.host,
-      port: 3306,
-      user: db.username,
-      password: db.password,
-      database: db.database,
-      clearExpired: true,
-      // How frequently expired sessions will be cleared; milliseconds:
-      checkExpirationInterval: 900000,
-      // The maximum age of a valid session; milliseconds:
-      expiration: 900000,
-    }),
-    resave: false,
-    saveUninitialized: false,
-  })
+    session({
+        key: "vidjot_session",
+        secret: "tojiv",
+        store: new MySQLStore({
+            host: db.host,
+            port: 3306,
+            user: db.username,
+            password: db.password,
+            database: db.database,
+            clearExpired: true,
+            // How frequently expired sessions will be cleared; milliseconds:
+            checkExpirationInterval: 900000,
+            // The maximum age of a valid session; milliseconds:
+            expiration: 900000,
+        }),
+        resave: false,
+        saveUninitialized: false,
+    })
 );
 
 // Initilize Passport middleware
@@ -130,31 +130,31 @@ app.use(passport.session());
 
 // To store session information. By default it is stored as a cookie on browser
 app.use(
-  session({
-    key: "vidjot_session",
-    secret: "tojiv",
-    resave: false,
-    saveUninitialized: false,
-  })
+    session({
+        key: "vidjot_session",
+        secret: "tojiv",
+        resave: false,
+        saveUninitialized: false,
+    })
 );
 
 app.use(flash());
 app.use(FlashMessenger.middleware);
 
 // Place to define global variables - not used in practical 1
-app.use(function (req, res, next) {
-  res.locals.success_msg = req.flash("success_msg");
-  res.locals.error_msg = req.flash("error_msg");
-  res.locals.error = req.flash("error");
-  res.locals.user = req.user || null;
-  next();
+app.use(function(req, res, next) {
+    res.locals.success_msg = req.flash("success_msg");
+    res.locals.error_msg = req.flash("error_msg");
+    res.locals.error = req.flash("error");
+    res.locals.user = req.user || null;
+    next();
 });
 
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated())
-    return next();
-  else
-    res.redirect('/')
+    if (req.isAuthenticated())
+        return next();
+    else
+        res.redirect('/')
 }
 
 // Use Routes
@@ -162,25 +162,25 @@ function ensureAuthenticated(req, res, next) {
  * Defines that any root URL with '/' that Node JS receives request from, for eg. http://localhost:5000/, will be handled by
  * mainRoute which was defined earlier to point to routes/main.js
  * */
-app.use("/",  mainRoute); // mainRoute is declared to point to routes/main.js
-app.use("/user",  userRoute);
+app.use("/", mainRoute); // mainRoute is declared to point to routes/main.js
+app.use("/user", userRoute);
 app.use("/video", videoRoute);
 app.use("/chat", ensureAuthenticated, chatRoute.router);
 app.use("/task", ensureAuthenticated, taskRoute);
-app.use("/notes", noteRoute); 
+app.use("/notes", noteRoute);
 // This route maps the root URL to any path defined in main.js
 
 app.use(function(req, res, next) {
-  res.status(400).send('404: Page not found')
+    res.status(400).send('404: Page not found')
 });
 
 app.use(function(req, res, next) {
-  res.status(500).send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
+    res.status(500).send('500: Internal Server Error. PixeS is down right now, Please try again later.�‍♀️�‍♂️��', 500)
 });
 
 // Starts the server and listen to port 5000
 let server = app.listen(port, () => {
-  console.log(`Server started on port ${server.address().port}`);
+    console.log(`Server started on port ${server.address().port}`);
 });
 
 socks.setServer(server);

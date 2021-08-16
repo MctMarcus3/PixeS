@@ -1,22 +1,51 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Friends = require('../models/Friends')
 const alertMessage = require('../helpers/messenger');
 const passport = require('passport');
 var bcrypt = require('bcryptjs');
 const flash = require("connect-flash");
 const JWT_SECRET = 'some super secret...'
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
+const sgMail = require('@sendgrid/mail');
+
+function sendEmail(userId, email, token) {
+    sgMail.setApiKey("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")
+
+    const message = {
+        to: email,
+        from: "ourpixesmail@gmail.com",
+        subject: "Change Account Password",
+        text: "Pixes Password Link",
+        html: `Please click on this link <br> <br> <a href="http://localhost:5000/user/reset-password/${userId}/${token}"> <strong>Change</strong></a> your password`
+    };
+    sgMail
+        .send(message)
+        .then((response) => {
+            console.log(response[0].statusCode)
+            console.log(response[0].headers)
+        })
+        .catch((error) => {
+            console.error(error)
+        });
+}
 
 router.get('/updateAccount/:id', (req, res) => {
     req.flash('id', req.params.id)
     res.render('user/update')
+})
+router.get('/changePw/:id', (req, res) => {
+    req.flash('id', req.params.id)
+    res.render('user/changePassword')
 })
 
 // User register URL using HTTP post => /user/register
 router.post('/register', (req, res) => {
     let errors = []
     let success_msg = '';
+    let friendReq = null
 
     // Excercise 3
     let { name, email, password, password2 } = req.body;
@@ -51,7 +80,7 @@ router.post('/register', (req, res) => {
                     bcrypt.genSalt(10, function(err, salt) {
                         bcrypt.hash(password, salt, function(err, hash) {
                             if (err) throw err;
-                            User.create({ name, email, password: hash })
+                            User.create({ name, email, password: hash, friendReq })
                                 .then(user => {
                                     let msg = user.email + 'registered succesfully';
                                     alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
@@ -70,7 +99,7 @@ router.post('/login', (req, res, next) => {
     passport.authenticate('local', function(err, user, info) {
         if (err) return next(err);
         if (!user) return res.redirect("/showLogin");
-        
+
         req.logIn(user, function(err) {
             if (err) return next(err);
 
@@ -79,13 +108,117 @@ router.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
+router.post('/findFriend/:id', (req, res) => {
+    let existingid = req.params.id
+    let thing = req.body
+    let id = thing.id
+    let errors = []
+    let success_msg = '';
+    var found = "false";
+    console.log(id, existingid);
+
+    User.findOne({ where: { id: id } })
+        .then(user => {
+            if (!user) {
+                let msg = 'User not Found';
+                console.log(msg)
+                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                res.redirect("/showProfile");
+            } else {
+                Friends.findOne({
+                        where: {
+                            [Op.or]: [{
+                                    [Op.and]: [
+                                        { friend: id },
+                                        { friendsWith: existingid }
+                                    ]
+                                },
+                                {
+                                    [Op.and]: [
+                                        { friend: existingid },
+                                        { friendsWith: id }
+                                    ]
+                                }
+                            ]
+                        }
+                    })
+                    .then(friends => {
+                        if (friends) {
+                            let msg = 'Already friends';
+                            console.log(msg)
+                            alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                            res.json(friends)
+                        } else {
+                            let status = '1'
+                            Friends.create({ friend: id, friendsWith: existingid, status })
+                                .then(friends => {
+                                    let msg = 'request sent';
+                                    console.log(msg)
+                                    alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                    // res.redirect('/showProfile');
+                                    res.json(friends)
+                                })
+                        }
+                    })
+            }
+        });
+});
+
+router.post('/addFriend', (req, res) => {
+    let id = req.flash('id')
+    let friend = req.body
+    let friendId = friend.id
+    let errors = []
+    let success_msg = '';
+    console.log(id, existingid[-1]);
+
+    User.findOne({ where: { id: friendId } })
+        .then(user => {
+            if (!user) {
+                let msg = 'User not Found';
+                console.log(msg)
+                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+            } else {
+                // Create new friend record
+                Friends.create({ id, friendId })
+                    .then(user => {
+                        let msg = "Request Sent";
+                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                        res.redirect('/showProfile');
+                    })
+                    .catch(err => console.log(err));
+            }
+        });
+
+});
+
+router.route('/getAllMyFriends/:id')
+    .get(async (req, res) => {
+        const id = req.params.id;
+        const allFriends = await Friends.findAll({
+            where: { 
+                [Op.or]: [
+                {
+                    friend: id,
+                    
+                },
+                {   
+                    friendsWith: id
+                }
+                ]
+                }
+        }).then(
+        )
+        return res.json(allFriends);
+    });
+
 router.post('/update', (req, res) => {
     let id = req.flash('id')
     let errors = []
     let success_msg = '';
 
     // Excercise 3
-    let { name, email, password, password2 } = req.body;
+    let { name, email } = req.body;
     if (errors.length > 0) {
         res.render('user/update', {
             errors,
@@ -93,7 +226,6 @@ router.post('/update', (req, res) => {
             email
         });
     } else {
-        // If all is well, checks if user is already registered
         // update existing user record
         User.update({ name: name }, { where: { id: id } })
         User.update({ email: email }, { where: { id: id } })
@@ -103,6 +235,54 @@ router.post('/update', (req, res) => {
                 res.redirect('/showProfile');
             })
             .catch(err => console.log(err));
+    }
+});
+
+router.post('/changePw', (req, res) => {
+    let id = req.flash('id')
+    let errors = []
+    let success_msg = '';
+
+    let { extPassword, password, password2 } = req.body;
+    if (password !== password2) {
+        errors.push({ text: 'Passwords do not match' });
+    }
+    // Checks that password length is more than 4
+    if (password.length < 4) {
+        errors.push({ text: 'Password must be at least 4 characters' });
+    }
+    if (errors.length > 0) {
+        res.render('user/changePassword', {
+            errors,
+        });
+    } else {
+        User.findOne({ where: { id: id } })
+            .then(user => {
+                if (!user) {
+                    return done(null, false, { message: 'No User Found' });
+                }
+                // Match password
+                bcrypt.compare(extPassword, user.password, (err, isMatch) => {
+                    console.log(extPassword, user.password)
+                    if (err) throw err;
+                    if (isMatch) {
+                        console.log("Successfully");
+                        bcrypt.genSalt(10, function(err, salt) {
+                            bcrypt.hash(password, salt, function(err, hash) {
+                                if (err) throw err;
+                                User.update({ password: hash }, { where: { id: id } })
+                                    .then(user => {
+                                        let msg = user.email + 'password changed succesfully';
+                                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                    })
+                                    .catch(err => console.log(err));
+                            })
+                        });;
+                    } else {
+                        console.log("password error");
+                    }
+                })
+            })
     }
 });
 
@@ -118,6 +298,8 @@ router.post('/showForgot', (req, res, next) => {
                     id: user.id
                 }
                 const token = jwt.sign(payload, secret, { expiresIn: "15m" })
+                console.log(user.email)
+                sendEmail(user.id, user.email, token)
                 const link = `http://localhost:5000/user/reset-password/${user.id}/${token}`;
                 console.log(link);
             } else {

@@ -1,20 +1,31 @@
 <link rel="stylesheet" href="/css/test.css">
 <div class="lists">
     <div class="list">
-        <div class="list_title">Task Management</div>
+        <div class="list_title">Task Management {{id}}</div>
         <div class="list-body" id="list-body"></div>
         <div class="list_footer">
-            <button id="add-task" type="button" name="add-button" onclick="openModal('New')" class="button">
+            <button id="add-task" type="button" name="add-button" onclick="addTask();openModal('New');" class="button">
                 Add task
             </button>
         </div>
+    </div>
+</div>
+<div id="confirm" class="modal">
+    <div class="modal_card">
+        <div class="modal_card_title">
+            Confirm Delete
+        </div>
+        <form class="modal_form">
+            <button type="button" class="button" onclick="closeConfirm();">Cancel</button>
+            <button type="button" id="confirmDel" class="button danger">Confirm</button>
+        </form>
     </div>
 </div>
 <div id="modal" class="modal">
     <div class="modal_card">
         <div id="modal_card_title" class="modal_card_title">New</div>
         <div class="modal_card_body">
-            <form class="modal_form">
+            <form class="modal_form" >
                 <label for="task-name">Name:
                     <input type="text" id="task-name" name="task-name" value="" required />
                 </label>
@@ -28,27 +39,19 @@
                         <option value="high">High</option>
                     </select>
                 </label>
-                <label for="task-user">User:
-                    <select id="task-user" class="form-select" name="task-priority" required>
-                        <option value="low">User 1</option>
-                        <option value="medium">User 2</option>
-                        <option value="high">User 3</option>
-                    </select>
-                </label>
                 <label for="task-expiration">Expiration:
                     <input id="task-expiration" type="date" name="task-expiration" value="" required />
                 </label>
                 <input id="task-id" type="hidden" name="task-id" value="new" />
                 <div class="form_button-container">
                     <button type="button" name="send-form" class="button default edit" onclick="closeModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" name="send-form" class="button">
-                        Save
-                    </button>
+                        Cancel</button>
+                    <button type="submit" id='submitTasks' name="send-form" class="button">Save</button>
                 </div>
+                <input type="hidden" id="timestamp" name="send-form" value="">
             </form>
         </div>
     </div>
-    <script src="/bootstrap/vendor/jquery/jquery.min.js"></script>
-    <script src="/js/task/task.js"></script>
+</div>
+<script src="/bootstrap/vendor/jquery/jquery.min.js"></script>
+<script src="/js/task/task.js"></script>

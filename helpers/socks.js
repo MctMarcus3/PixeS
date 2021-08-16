@@ -1,6 +1,7 @@
 const io = require('socket.io')();
 const Group = require("../models/Group");
 const Chat = require("../models/Chat");
+const User = require("../models/User");
 
 module.exports.io = io;
 
@@ -40,12 +41,25 @@ io.on("connection", (socket) => {
     socket.on("join", (channel) => {
       //console.log(channel);
       let messages = [];
+      let users = [];
+
+
+
       Chat.findAll({where: {channelid: channel}}).then((c) => {
         c.forEach((d) => {
           messages.push(d.dataValues);
         });
-        //console.log(messages);
-        socket.join(channel);
+
+        User.findAll().then((u) => {
+          u.forEach((f) => {
+            let da = f.dataValues;
+            let id = da.id;
+            users[id] = da;
+          })
+
+          socket.emit("history", {m: messages, u: users});
+          socket.join(channel);
+        })
       })
     });
 
