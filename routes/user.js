@@ -147,15 +147,16 @@ router.post('/findFriend/:id', (req, res) => {
                             let msg = 'Already friends';
                             console.log(msg)
                             alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                            res.json(friends)
                         } else {
                             let status = '1'
-                            Friends.create({ friend: existingid, friendsWith: id, status })
                             Friends.create({ friend: id, friendsWith: existingid, status })
                                 .then(friends => {
                                     let msg = 'request sent';
                                     console.log(msg)
                                     alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
-                                    res.redirect('/showProfile');
+                                    // res.redirect('/showProfile');
+                                    res.json(friends)
                                 })
                         }
                     })
@@ -190,6 +191,26 @@ router.post('/addFriend', (req, res) => {
         });
 
 });
+
+router.route('/getAllMyFriends/:id')
+    .get(async (req, res) => {
+        const id = req.params.id;
+        const allFriends = await Friends.findAll({
+            where: { 
+                [Op.or]: [
+                {
+                    friend: id,
+                    
+                },
+                {   
+                    friendsWith: id
+                }
+                ]
+                }
+        }).then(
+        )
+        return res.json(allFriends);
+    });
 
 router.post('/update', (req, res) => {
     let id = req.flash('id')
