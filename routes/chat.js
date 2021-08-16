@@ -13,7 +13,8 @@ function initSocketClient(req)
     socket.username = userData.name;
     socket.userID = userData.id;
     socket.data = userData;
-            
+    
+    socket.emit("updateusers", {i: socket.id, u: userData.id})
     //socket.emit("join", target);
   })
 }
