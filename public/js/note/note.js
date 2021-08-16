@@ -51,7 +51,7 @@ CreateNote() {
 
 };
 function createNewNote() {
-
+console.log("hi")
 const new1 = new Note(250, 150, 300, 300,"New Note");
 
 
@@ -60,7 +60,8 @@ new1.CreateNote();
 notes_list.push(new1);
 
 move_div(new1.obj);
-
+console.log(here)
+$.post("notes/createnote")
 console.log(Notedb)
 
 //Notedb.create({id : new1.id,text :new1.text,x: new1.x,y:new1.y})

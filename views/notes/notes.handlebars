@@ -9,8 +9,7 @@
 <body>
 
 
-
-  <button type="button" class="button" onclick="createNewNote()">
+  <button type="button" class="button" href="/createnotes" onclick="createNewNote()">
     <span class="button__text">New</span>
     <span class="button__icon">
       <ion-icon name="add-circle-outline"></ion-icon>
@@ -28,8 +27,20 @@
 
 <script>
   var namee = "{{name}}";
-  var name2 = JSON.parse("{{name}}");
-  console.log(name2);
+  var groupid = "{{g_id}}"
+  var sent = namee.split(",")
+  var sent_list = []
+  var temp = []
+  for (let i = 0; i <= sent.length; i++) {
+    temp.push(sent[i])
+    if (temp.length > 3){
+      sent_list.push(temp)
+      temp = []
+    };
+ 
+}
+
+  
   
   //src="../../models/note.js"
   var notes_list = [];
@@ -38,14 +49,15 @@
   //var title = document.getElementById("lol")
   //title.setAttribute("style", "position: absolute;border: 1px solid blue;width: 300px;height: 100px;top: 70px;left: 15px; ")
   class Note {
-    constructor(x, y, height, width,text) {
+    constructor(id,x, y, height, width,text,color) {
       this.x = x;
       this.y = y;
       this.height = height;
       this.width = width;
       this.text = text
-      this.id = note_count
+      this.id = id
       this.obj = null
+      this.color = color
       note_count += 1
       
 
@@ -56,15 +68,15 @@
     CreateNote() {
       var div = document.createElement("div");
       div.className = "note"
-      div.id = "note" + this.id
+      div.id = this.id
       div.onmousedown = "move_div(div)"
       div.style.position = "absolute";
       div.style.border = "1px solid #000";
       div.style.width = this.width.toString() + "px";
       div.style.height = this.height.toString() + "px";
-      div.style.left = (this.x + count).toString() + "px";
+      div.style.left = this.x.toString() + "px";
       div.style.top = this.y.toString() + "px";
-      div.style.backgroundColor = "rgb(255,255,0)";
+      div.style.backgroundColor = this.color;
       div.style.color = "blue";
       //div.style.height = "50vh";
       div.style.display = "flex";
@@ -76,8 +88,24 @@
       text.contentEditable = "true"
       text.innerHTML = this.text
       div.appendChild(text)
+
+      var del = document.createElement("button");
+      del.style.position = "absolute";
+      del.style.right = 10 + "px";
+      del.style.top = 10 + "px";
+      del.style.padding = "5px 5px"
+      del.innerHTML = ""
+      del.onclick =function(){
+      $.post("/notes/deletenote",{gid:groupid,id:div.id});
+      window.location.href = "/notes/" + groupid;
+      
+  };
+      div.appendChild(del);
+      
+      //document.getElementById("notes").appendChild(del);
       document.getElementById("notes").appendChild(div);
       this.obj = div;
+
       
     };
     update(){
@@ -85,28 +113,55 @@
       var id,text,x,y;
       
       var t = this.text;
-      
-          $.post("notes/updatenote",{id:this.id, text:this.text, x:this.x, y:this.y}
+          
+          $.post("/notes/updatenote",{id:this.id, text:this.text, x:this.x, y:this.y,gid:groupid}
           );
       
     };
 
 
   };
+
+  function displaynote(chosen_note){
+      new_note.CreateNote();
+      notes_list.push(chosen_note);
+      move_div(chosen_note);
+  };
+  function drawnotes(){
+    
+    for (i in sent_list){
+      
+      
+      const new_note = new Note(sent_list[i][0], sent_list[i][2], sent_list[i][3], 300, 300, sent_list[i][1],"yellow");
+      //console.log(new_note.x)
+      new_note.CreateNote();
+      notes_list.push(new_note);
+      move_div(new_note);
+  }
+  }
+  drawnotes()
+  
+  
   function createNewNote() {
     
-    const new1 = new Note(250, 150, 300, 300,"New Note");
-
-
-    count += 50;
+    if (sent_list.length > 0 ){
+    var new_id = JSON.parse(sent_list[sent_list.length - 1][0]) + 1
+    }
+    else{
+      var new_id = 1
+    }
+    const new1 = new Note(new_id,250, 150, 300, 300,"New Note","yellow");
+    count += 0;
     new1.CreateNote();
     notes_list.push(new1);
-    
-    move_div(new1);
- 
-    
 
+    console.log(groupid)
+    $.post("/notes/createnote",{gid:groupid});
+    move_div(new1);
   };
+
+  
+
   var clicked = get_clicked();
   
   function get_clicked() {
@@ -119,23 +174,32 @@
     }, false);
 
   };
-document.onkeydown = function (e) {
+$(document).on('keyup', function() {
+    console.log('key was released')
+    for (let i = 0; i < notes_list.length; i++) {
+      se_note = notes_list[i];
+      se_note.text = se_note.obj.textContent
+      se_note.update()
+
+      };
+})
+/*document.onkeydown = function (e) {
     e = e || window.event;
     var key = event.keyCode || event.charCode;
 
     if( key){
       for (let i = 0; i < notes_list.length; i++) {
       se_note = notes_list[i];
-      if (se_note.obj.innerHTML != se_note.text){
-        se_note.text = se_note.obj.innerHTML
-        se_note.update()
+      console.log(se_note.obj.textContent)
+      //se_note.text = se_note.obj.innerHTML
+      //se_note.update()
 
-      }
+      
       };
       
     };
     
-};
+};*/
 
 
   function move_div(ele) {
@@ -162,9 +226,17 @@ document.onkeydown = function (e) {
         el.style.top = rect.top - newY + "px";
         
 
-        ele.x = el.style.left;
-        ele.y = el.style.top;
-        
+        ele.x = rect.left - newX;
+        ele.y = rect.top - newY ;
+        console.log(rect.left - newX)
+        if (rect.left - newX < 225){
+          el.style.left = 225 + "px";;
+          ele.x = 225;
+        }
+        if (rect.top - newY < 125){
+          el.style.top = 125 + "px";;
+          ele.y = 125;
+        }
         
         prevX = e.clientX;
         prevY = e.clientY;
