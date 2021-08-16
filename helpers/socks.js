@@ -43,8 +43,6 @@ io.on("connection", (socket) => {
       let messages = [];
       let users = [];
 
-
-
       Chat.findAll({where: {channelid: channel}}).then((c) => {
         c.forEach((d) => {
           messages.push(d.dataValues);
@@ -75,7 +73,8 @@ io.on("connection", (socket) => {
         io.in(target).emit("new_message", {
             message: data.message,
             username: socket.username,
-            target: target
+            target: target,
+            from: socket.id
         });
     });
   

@@ -17,6 +17,8 @@ function getChannel(l)
   }
 }
 
+let clients = {};
+
 $(function () {
   let socket = io.connect("http://localhost:5000");
   let lmaowtf = window.location.pathname.split('/');
@@ -37,16 +39,42 @@ $(function () {
     socket.emit("new_message", {channel: channel, message: message.val() });
   });
 
+  socket.on("updateusers", (data) => {
+    let sockID = data.i;
+    let userID = data.u;
+
+    clients[userID] = sockID;
+  })
+
   socket.on("new_message", (data) => {
     feedback.html("");
     message.val("");
 
-    chatroom.append(
-      '<p class="message">' + data.username + ": " + data.message + "</p>"
-    );
+    let time_sent = new Date().toLocaleString();
+
+    if (data.from == socket.id)
+    {
+      chatroom.append(
+        `<div class="chatcontainer darker">
+          <p class="message">${data.username} : ${data.message}</p>
+          <span class="time-left">${time_sent}</span>
+        </div>`
+      );
+    }
+    else
+    {
+      chatroom.append(
+        `<div class="chatcontainer">
+          <p class="message">${data.username} : ${data.message}</p>
+          <span class="time-left">${time_sent}</span>
+        </div>`
+      );
+    }
   });
 
   socket.on("history", (data) => {
+    chatroom.prepend();
+
     let messages = data.m;
     let users = data.u;
     
@@ -57,16 +85,27 @@ $(function () {
       let userid = msg.userid;
       let text = msg.text;
 
-      console.log(users[1]);
+      let time_sent = new Date(msg.time_sent).toLocaleString();
 
       if (users[userid] != null)
       {
         let u = users[userid];
         let uname = u.name;
 
-        chatroom.append(
-          `<p class="message" name=${mid}>` + uname + ": " + text + "</p>"
-        );
+        if (clients[userid] == socket.id)
+        {
+          chatroom.append(`<div class="chatcontainer darker" id=${mid}>
+              <p class="message">${uname} : ${text}</p>
+              <span class="time-left">${time_sent}</span>
+            </div>`);
+        }
+        else
+        {
+          chatroom.append(`<div class="chatcontainer" id=${mid}>
+              <p class="message">${uname} : ${text}</p>
+              <span class="time-left">${time_sent}</span>
+            </div>`);
+        }
       }
       else
       {
