@@ -1,27 +1,21 @@
-function getChannel(l)
-{
+function getChannel(l) {
   let length = l.length;
   let defaultChannel = "public";
 
-  if (length >= 4)
-  {
+  if (length >= 4) {
     let t = l[2].toLowerCase();
     let i = [3];
 
     if (t == "user") return `${i}`;
     else return `${t}${i}`;
-  }
-  else
-  {
+  } else {
     return defaultChannel;
   }
 }
 
-let clients = {};
-
 $(function () {
   let socket = io.connect("http://localhost:5000");
-  let lmaowtf = window.location.pathname.split('/');
+  let lmaowtf = window.location.pathname.split("/");
 
   let message = $("#message");
   //let username = $("#username");
@@ -36,85 +30,17 @@ $(function () {
   socket.target = channel;
 
   send_message.click(function () {
-    socket.emit("new_message", {channel: channel, message: message.val() });
+    socket.emit("new_message", { channel: channel, message: message.val() });
   });
-
-  socket.on("updateusers", (data) => {
-    let sockID = data.i;
-    let userID = data.u;
-
-    clients[userID] = sockID;
-  })
 
   socket.on("new_message", (data) => {
     feedback.html("");
     message.val("");
 
-    let time_sent = new Date().toLocaleString();
-
-    if (data.from == socket.id)
-    {
-      chatroom.append(
-        `<div class="chatcontainer darker">
-          <p class="message">${data.username} : ${data.message}</p>
-          <span class="time-left">${time_sent}</span>
-        </div>`
-      );
-    }
-    else
-    {
-      chatroom.append(
-        `<div class="chatcontainer">
-          <p class="message">${data.username} : ${data.message}</p>
-          <span class="time-left">${time_sent}</span>
-        </div>`
-      );
-    }
+    chatroom.append(
+      '<p class="message">' + data.username + ": " + data.message + "</p>"
+    );
   });
-
-  socket.on("history", (data) => {
-    chatroom.prepend();
-
-    let messages = data.m;
-    let users = data.u;
-    
-    for (let i = 0; i < messages.length; i++)
-    {
-      let msg = messages[i];
-      let mid = msg.id;
-      let userid = msg.userid;
-      let text = msg.text;
-
-      let time_sent = new Date(msg.time_sent).toLocaleString();
-
-      if (users[userid] != null)
-      {
-        let u = users[userid];
-        let uname = u.name;
-
-        if (clients[userid] == socket.id)
-        {
-          chatroom.append(`<div class="chatcontainer darker" id=${mid}>
-              <p class="message">${uname} : ${text}</p>
-              <span class="time-left">${time_sent}</span>
-            </div>`);
-        }
-        else
-        {
-          chatroom.append(`<div class="chatcontainer" id=${mid}>
-              <p class="message">${uname} : ${text}</p>
-              <span class="time-left">${time_sent}</span>
-            </div>`);
-        }
-      }
-      else
-      {
-        chatroom.append(
-          "<p class=\"message\">Error loading message(s).</p>"
-        );
-      }
-    }
-  })
 
   message.bind("keypress", () => {
     socket.emit("typing");
@@ -123,25 +49,31 @@ $(function () {
   socket.on("groups", (data) => {
     $("#group-bind").html("");
     data.forEach((e) => {
+      let del = $(`<i class="fas fa-times ml-2"></i>`);
       let elem = $(
-        `<a class="nav-link collapsed" href="/chat/group/${e.id}">
+        `<a class="nav-link collapsed" href="/groups/${e.id}">
                             <i class="fas fa-fw fa-users"></i>
                             <span>` +
           e.name +
           `</span>
                         </a>`
-      );
+      ).append(del);
+      del.on("click", (ee) => {
+        ee.preventDefault();
+        socket.emit("del_grp", e.id);
+      });
       $("#group-bind").append(elem);
     });
   });
   socket.on("groups", (data) => {
     $("#group-note-bind").html("");
-    data.forEach((e) => { 
+    data.forEach((e) => {
       let elem = $(
         `<a class="nav-link collapsed" href="/notes/${e.id}">
                             <i class="fas fa-fw fa-users"></i>
                             <span>` +
-          e.name + " notes" +
+          e.name +
+          " notes" +
           `</span>
                         </a>`
       );
@@ -155,9 +87,9 @@ $(function () {
   });
 
   $("#addGroup").click(() => {
-    let gname = prompt("Enter group name");
+    let gname = $("#addGroupInput").val();
 
-    let data = {name: gname};
+    let data = { name: gname };
 
     socket.emit("new_grp", data);
     socket.emit("get_grp");
@@ -177,15 +109,13 @@ $(function () {
   });
 
   socket.on("connect_error", (err) => {
-    if (err.message == "ERR-ZL0ND")
-    {
+    if (err.message == "ERR-ZL0ND") {
       console.log("Not logged in!");
     }
   });
 
   socket.on("update_users", (data) => {
-    for (let i = 0; i < data.length; i++)
-    {
+    for (let i = 0; i < data.length; i++) {
       console.log(data[i]);
     }
   });
@@ -194,8 +124,53 @@ $(function () {
     this.users.push(user);
   });
 
+  socket.on("alert", (data) => {
+    alert(data);
+  });
+
   setInterval(() => {
     socket.emit("get_grp");
     socket.emit("update_users", getChannel(lmaowtf));
-  }, 2000);
-}); 
+  }, 500);
+
+  $(document).ready(function () {
+    $("#add").on("click", () => {
+      let username = $("#addFriendsId").val();
+      var arr = window.location.pathname.split("/");
+      socket.emit("add_member", {
+        username: username,
+        grp_id: arr[arr.length - 1],
+      });
+    });
+
+    var arr = window.location.pathname.split("/");
+    socket.emit("get_members", { grp_id: arr[arr.length - 1] });
+
+    socket.on("list_members", (list) => {
+      console.log(list);
+
+      $(".members").html(``);
+      $(".members").append(
+        `<div class="col-12 p-2" style="font-weight: 900; color: black;">Admin: </div>`
+      );
+      $(".members").append(
+        $(`<div class="col-12 p-2 item">${list.admin}</div>`)
+      );
+      $(".members").append(
+        `<div class="col-12 p-2" style="font-weight: 900; color: black;">Members: </div>`
+      );
+      list.members.forEach((e) => {
+        $(".members").append(
+          $(`<div class="col-12 p-2 item">${e}</div>`)
+            .append(`<i class="fas fa-times ml-2"></i>`)
+            .on("click", () => {
+              socket.emit("delete_member", {
+                username: e,
+                grp_id: arr[arr.length - 1],
+              });
+            })
+        );
+      });
+    });
+  });
+});

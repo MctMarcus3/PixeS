@@ -18,6 +18,7 @@
             <div class="sidebar-heading">
                 Toolbar
             </div>
+            {{#if user}}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true"
                     aria-controls="collapseTwo">
@@ -27,11 +28,14 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Add/Create Option</h6>
-                        <a class="collapse-item" href="#" id="addUser">Users</a>
-                        <a class="collapse-item" href="/group" id="addGroup">Group</a>
+
+
+                        <p class="collapse-item" data-toggle="modal" data-target="#qikuamai" >Group</p>
+                    
                     </div>
                 </div>
             </li>
+            {{/if}}
             <!-- Divider -->
             <hr class="sidebar-divider">
             
@@ -71,6 +75,27 @@
 
         </ul>
         <!-- End of Sidebar -->
+        <div id="qikuamai" class="modal fade" role="form">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Type Your Group Name.</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <input type="text" name="" id="addGroupInput">
+                        </form>
+                
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" id="addGroup">Add</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 <script>
    
 </script>

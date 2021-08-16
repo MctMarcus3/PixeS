@@ -7,10 +7,10 @@ const Group = db.define("group", {
   name: {
     type: Sequelize.STRING,
   },
-  admin: {
+  members: {
     type: Sequelize.STRING,
   },
-  members: {
+  admin: {
     type: Sequelize.STRING,
   },
 });
