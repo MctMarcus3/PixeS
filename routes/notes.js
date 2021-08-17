@@ -17,7 +17,7 @@ router.get("/:id", (req, res) => {
         for (let i = 0; i < note.length; i++) {
             
             if (note[i].g_id == gid){
-                var temp_list = [note[i].id,note[i].text,note[i].x,note[i].y];
+                var temp_list = [note[i].id,note[i].text,note[i].x,note[i].y,note[i].color];
             
                 send_notes_list.push(temp_list);
             }
@@ -40,8 +40,8 @@ router.post("/createnote", (req, res) => {
       var id = highest_id[0]['MAX(`id`)'] + 1;
       var text = "New Note";
       var group_id = req.body.gid;
-      
-      Notedb.create({id : id,text:text,x:x,y:y,g_id:group_id})
+      var color = "yellow";
+      Notedb.create({id : id,text:text,x:x,y:y,g_id:group_id,color:color})
       res.redirect("/notes/" + group_id)
     })
     
@@ -62,14 +62,15 @@ router.post("/updatenote", (req, res) => {
     var x = req.body.x;
     var y = req.body.y;
     var group_id = req.body.gid;
+    var color = req.body.color;
     //console.log(x,y);
    
-    
+    console.log(id);
     Notedb.destroy({where:{
         id:id
     }});
-    console.log(group_id);
-    Notedb.create({id : id,text:text,x:x,y:y, g_id:group_id});
+
+    Notedb.create({id : id,text:text,x:x,y:y, g_id:group_id,color:color});
 
     res.redirect("/notes/" + group_id);
 

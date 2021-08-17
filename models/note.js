@@ -19,6 +19,9 @@ const Note = db.define('note', {
     },
     g_id: {
         type: Sequelize.INTEGER
+    },
+    color:{
+        type: Sequelize.STRING
     }
 });
 
