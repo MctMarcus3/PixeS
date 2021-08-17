@@ -167,34 +167,6 @@ router.post('/findFriend/:id', (req, res) => {
         });
 });
 
-router.post('/addFriend', (req, res) => {
-    let id = req.flash('id')
-    let friend = req.body
-    let friendId = friend.id
-    let errors = []
-    let success_msg = '';
-    console.log(id, existingid[-1]);
-
-    User.findOne({ where: { id: friendId } })
-        .then(user => {
-            if (!user) {
-                let msg = 'User not Found';
-                console.log(msg)
-                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
-            } else {
-                // Create new friend record
-                Friends.create({ id, friendId })
-                    .then(user => {
-                        let msg = "Request Sent";
-                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
-                        res.redirect('/showProfile');
-                    })
-                    .catch(err => console.log(err));
-            }
-        });
-
-});
-
 router.route('/getAllMyFriends/:id')
     .get(async(req, res) => {
         const id = req.params.id;
