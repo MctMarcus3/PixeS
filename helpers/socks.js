@@ -73,6 +73,7 @@ io.on("connection", (socket) => {
   });
 
  socket.on("get_grp", (data) => {
+    console.log(data);
    let res = [];
    Group.findAll().then((e) => {
      e.forEach((d) => {
@@ -84,6 +85,7 @@ io.on("connection", (socket) => {
 
  socket.on("get_members", (rcv) => {
    console.log("add");
+   console.log(rcv);
    Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
      var data;
      try {
@@ -91,8 +93,8 @@ io.on("connection", (socket) => {
      } catch (e) {}
      if (!data) data = [];
      io.sockets.emit("list_members", {
-       members: data,
-       admin: e[0].dataValues["admin"],
+       members: data
+       //admin: e[0].dataValues["admin"],
      });
    });
  });
@@ -117,8 +119,8 @@ io.on("connection", (socket) => {
      )
        .then((result) => {
          io.sockets.emit("list_members", {
-           members: data,
-           admin: e[0].dataValues["admin"],
+           members: data
+           //admin: e[0].dataValues["admin"],
          });
        })
        .catch((err) => {});
@@ -147,8 +149,8 @@ io.on("connection", (socket) => {
      )
        .then((result) => {
          io.sockets.emit("list_members", {
-           members: data,
-           admin: e[0].dataValues["admin"],
+           members: data
+           //admin: e[0].dataValues["admin"],
          });
        })
        .catch((err) => {});

@@ -124,6 +124,7 @@ $(function () {
   });
 
   socket.on("groups", (data) => {
+     console.log(data);
     $("#group-bind").html("");
     data.forEach((e) => {
       let del = $(`<i class="fas fa-times ml-2"></i>`);
@@ -142,7 +143,7 @@ $(function () {
       $("#group-bind").append(elem);
     });
   });
-  
+
   socket.on("groups", (data) => {
     $("#group-note-bind").html("");
     data.forEach((e) => {
