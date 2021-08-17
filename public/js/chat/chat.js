@@ -3,7 +3,7 @@ let clients = {};
 function getChannel(l) {
   let length = l.length;
   let defaultChannel = "public";
-  
+
   if (length >= 4) {
     let t = l[2].toLowerCase();
     let i = l[3];
@@ -39,7 +39,7 @@ $(function () {
     let userID = data.u;
 
     clients[userID] = sockID;
-  })
+  });
 
   socket.on("new_message", (data) => {
     feedback.html("");
@@ -47,8 +47,7 @@ $(function () {
 
     let time_sent = new Date().toLocaleString();
 
-    if (data.from == socket.id)
-    {
+    if (data.from == socket.id) {
       chatroom.append(
         `<div class="chatcontainer darker">
           <p class="message"><b>${data.username}</b> : ${data.message}</p>
@@ -56,9 +55,7 @@ $(function () {
           <button class="btn"><i class="fa fa-trash"></i></button>
         </div>`
       );
-    }
-    else
-    {
+    } else {
       chatroom.append(
         `<div class="chatcontainer">
           <p class="message"><b>${data.username}</b> : ${data.message}</p>
@@ -72,8 +69,7 @@ $(function () {
     let messages = data.m;
     let users = data.u;
 
-    for (let i = 0; i < messages.length; i++)
-    {
+    for (let i = 0; i < messages.length; i++) {
       let msg = messages[i];
 
       let mid = msg.id;
@@ -81,17 +77,14 @@ $(function () {
       let text = msg.text;
       let hidden = msg.hidden;
 
-      if (!hidden)
-      {
+      if (!hidden) {
         let time_sent = new Date(msg.time_sent).toLocaleString();
 
-        if (users[userid] != null)
-        {
+        if (users[userid] != null) {
           let u = users[userid];
           let uname = u.name;
 
-          if (clients[userid] == socket.id)
-          {
+          if (clients[userid] == socket.id) {
             chatroom.append(`<div class="chatcontainer darker" id=${mid}>
                 <p class="message"><b>${uname}</b> : ${text}</p>
                 <span class="time">${time_sent}</span>
@@ -100,31 +93,27 @@ $(function () {
                   <button class="btn" type="submit" name="delete"><i class="fa fa-trash"></i></input>
                 </form>
               </div>`);
-          }
-          else
-          {
+          } else {
             chatroom.append(`<div class="chatcontainer" id=${mid}>
                 <p class="message"><b>${uname}</b> : ${text}</p>
                 <span class="time">${time_sent}</span>
               </div>`);
           }
-        }
-        else
-        {
+        } else {
           chatroom.append(
-            "<p style=\"color: red\" class=\"message\"><b>Error loading message(s).</b></p>"
+            '<p style="color: red" class="message"><b>Error loading message(s).</b></p>'
           );
         }
       }
     }
-  })
+  });
 
   message.bind("keypress", () => {
     socket.emit("typing");
   });
 
   socket.on("groups", (data) => {
-     console.log(data);
+    console.log(data);
     $("#group-bind").html("");
     data.forEach((e) => {
       let del = $(`<i class="fas fa-times ml-2"></i>`);
@@ -162,16 +151,16 @@ $(function () {
 
   $("#addUser").click(() => {
     let data = prompt("Enter username");
-    socket.emit("get_grp", data);
+    socket.emit("get_grps", data);
   });
 
   $("#addGroup").click(() => {
     let gname = $("#addGroupInput").val();
 
-    let data = { name: gname };
+    let data = { name: gname, authusername: $("#usernameauth").text() };
 
     socket.emit("new_grp", data);
-    socket.emit("get_grp");
+    socket.emit("get_grps");
   });
 
   socket.on("users", (users) => {
@@ -208,7 +197,7 @@ $(function () {
   });
 
   setInterval(() => {
-    socket.emit("get_grp");
+    socket.emit("get_grps", { authusername: $("#usernameauth").text() });
     socket.emit("update_users", getChannel(lmaowtf));
   }, 500);
 

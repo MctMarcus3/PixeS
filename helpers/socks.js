@@ -47,12 +47,14 @@ io.on("connection", (socket) => {
           let da = f.dataValues;
           let id = da.id;
           users[id] = da;
-        })
+        });
 
-        socket.emit("history", {m: messages, u: users});
+        socket.emit("history", { m: messages, u: users });
         socket.join(channel);
-      })
+      });
     });
+
+    console.log(users, messages);
   });
 
   socket.on("typing", (data) => {
@@ -68,94 +70,94 @@ io.on("connection", (socket) => {
       message: data.message,
       username: socket.username,
       target: target,
-      from: socket.id
+      from: socket.id,
     });
   });
 
- socket.on("get_grp", (data) => {
+  socket.on("get_grps", (data) => {
     console.log(data);
-   let res = [];
-   Group.findAll().then((e) => {
-     e.forEach((d) => {
-       res.push(d.dataValues);
-     });
-     io.sockets.emit("groups", res);
-   });
- });
+    let res = [];
+    Group.findAll().then((e) => {
+      e.forEach((d) => {
+        res.push(d.dataValues);
+      });
+      io.sockets.emit("groups", res);
+    });
+  });
 
- socket.on("get_members", (rcv) => {
-   console.log("add");
-   console.log(rcv);
-   Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
-     var data;
-     try {
-       data = JSON.parse(e[0].dataValues["members"]);
-     } catch (e) {}
-     if (!data) data = [];
-     io.sockets.emit("list_members", {
-       members: data
-       //admin: e[0].dataValues["admin"],
-     });
-   });
- });
+  socket.on("get_members", (rcv) => {
+    console.log("add");
+    console.log(rcv);
+    Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
+      var data;
+      try {
+        data = JSON.parse(e[0].dataValues["members"]);
+      } catch (e) {}
+      if (!data) data = [];
+      io.sockets.emit("list_members", {
+        members: data,
+        admin: e[0].dataValues["admin"],
+      });
+    });
+  });
 
- socket.on("del_grp", (rcv) => {
-   Group.destroy({ where: { id: rcv } }).then((e) => {});
- });
+  socket.on("del_grp", (rcv) => {
+    Group.destroy({ where: { id: rcv } }).then((e) => {});
+  });
 
- socket.on("delete_member", (rcv) => {
-   Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
-     var data;
-     try {
-       data = JSON.parse(e[0].dataValues["members"]);
-     } catch (e) {}
-     if (!data) data = [];
-     data = data.filter((item) => item !== rcv.username);
-     console.log(data);
+  socket.on("delete_member", (rcv) => {
+    Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
+      var data;
+      try {
+        data = JSON.parse(e[0].dataValues["members"]);
+      } catch (e) {}
+      if (!data) data = [];
+      data = data.filter((item) => item !== rcv.username);
+      console.log(data);
 
-     Group.update(
-       { members: JSON.stringify(data) },
-       { where: { id: rcv.grp_id } }
-     )
-       .then((result) => {
-         io.sockets.emit("list_members", {
-           members: data
-           //admin: e[0].dataValues["admin"],
-         });
-       })
-       .catch((err) => {});
-   });
- });
+      Group.update(
+        { members: JSON.stringify(data) },
+        { where: { id: rcv.grp_id } }
+      )
+        .then((result) => {
+          io.sockets.emit("list_members", {
+            members: data,
+            admin: e[0].dataValues["admin"],
+          });
+        })
+        .catch((err) => {});
+    });
+  });
 
- socket.on("add_member", (rcv) => {
-   Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
-     var data;
-     try {
-       data = JSON.parse(e[0].dataValues["members"]);
-     } catch (e) {}
-     if (!data) data = [];
+  socket.on("add_member", (rcv) => {
+    Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
+      var data;
+      try {
+        data = JSON.parse(e[0].dataValues["members"]);
+      } catch (e) {}
+      if (!data) data = [];
 
-     for (var i in data) {
-       if (data[i] == rcv.username) {
-         io.sockets.emit("alert", "User can't be duplicated");
-         return;
-       }
-     }
+      for (var i in data) {
+        if (data[i] == rcv.username) {
+          io.sockets.emit("alert", "User can't be duplicated");
+          return;
+        }
+      }
 
-     data.push(rcv.username);
-     Group.update(
-       { members: JSON.stringify(data) },
-       { where: { id: rcv.grp_id } }
-     )
-       .then((result) => {
-         io.sockets.emit("list_members", {
-           members: data
-           //admin: e[0].dataValues["admin"],
-         });
-       })
-       .catch((err) => {});
-   });
- });
+      data.push(rcv.username);
+      Group.update(
+        { members: JSON.stringify(data) },
+        { where: { id: rcv.grp_id } }
+      )
+        .then((result) => {
+          io.sockets.emit("list_members", {
+            members: data,
+            admin: e[0].dataValues["admin"],
+          });
+        })
+        .catch((err) => {});
+    });
+  });
 
   socket.on("update_users", (data) => {
     let res = [];
@@ -190,6 +192,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("new_grp", (data) => {
-    Group.create({ id: data.id, name: data.name, grp_id: "111" });
+    console.log(data);
+    Group.create({ id: data.id, name: data.name, admin: data.authusername });
   });
 });
