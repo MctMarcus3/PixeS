@@ -6,13 +6,14 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-function initSocketClient(req) {
+function initSocketClient(req, id) {
   let userData = req.user.dataValues;
   socks.io.on("connection", (socket) => {
     socket.username = userData.name;
     socket.userID = userData.id;
     socket.data = userData;
 
+    socket.emit("updateusers", {i: socket.id, u: userData.id})
     //socket.emit("join", target);
   });
 }

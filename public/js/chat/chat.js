@@ -1,13 +1,14 @@
+let clients = {};
+
 function getChannel(l) {
   let length = l.length;
   let defaultChannel = "public";
+  
+  if (length >= 3) {
+    let t = l[1].toLowerCase();
+    let i = l[2];
 
-  if (length >= 4) {
-    let t = l[2].toLowerCase();
-    let i = [3];
-
-    if (t == "user") return `${i}`;
-    else return `${t}${i}`;
+    return `${t}${i}`;
   } else {
     return defaultChannel;
   }
@@ -33,14 +34,80 @@ $(function () {
     socket.emit("new_message", { channel: channel, message: message.val() });
   });
 
+  socket.on("updateusers", (data) => {
+    let sockID = data.i;
+    let userID = data.u;
+
+    clients[userID] = sockID;
+  })
+
   socket.on("new_message", (data) => {
     feedback.html("");
     message.val("");
 
-    chatroom.append(
-      '<p class="message">' + data.username + ": " + data.message + "</p>"
-    );
+    let time_sent = new Date().toLocaleString();
+
+    if (data.from == socket.id)
+    {
+      chatroom.append(
+        `<div class="chatcontainer darker">
+          <p class="message">${data.username} : ${data.message}</p>
+          <span class="time-left">${time_sent}</span>
+        </div>`
+      );
+    }
+    else
+    {
+      chatroom.append(
+        `<div class="chatcontainer">
+          <p class="message">${data.username} : ${data.message}</p>
+          <span class="time-left">${time_sent}</span>
+        </div>`
+      );
+    }
   });
+
+  socket.on("history", (data) => {
+    let messages = data.m;
+    let users = data.u;
+
+    for (let i = 0; i < messages.length; i++)
+    {
+      let msg = messages[i];
+      let mid = msg.id;
+      let userid = msg.userid;
+      let text = msg.text;
+
+      let time_sent = new Date(msg.time_sent).toLocaleString();
+
+      if (users[userid] != null)
+      {
+        let u = users[userid];
+        let uname = u.name;
+
+        if (clients[userid] == socket.id)
+        {
+          chatroom.append(`<div class="chatcontainer darker" id=${mid}>
+              <p class="message">${uname} : ${text}</p>
+              <span class="time-left">${time_sent}</span>
+            </div>`);
+        }
+        else
+        {
+          chatroom.append(`<div class="chatcontainer" id=${mid}>
+              <p class="message">${uname} : ${text}</p>
+              <span class="time-left">${time_sent}</span>
+            </div>`);
+        }
+      }
+      else
+      {
+        chatroom.append(
+          "<p class=\"message\">Error loading message(s).</p>"
+        );
+      }
+    }
+  })
 
   message.bind("keypress", () => {
     socket.emit("typing");
