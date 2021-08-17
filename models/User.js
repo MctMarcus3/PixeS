@@ -16,7 +16,5 @@ const User = db.define('user', {
         type: Sequelize.STRING
     }
 });
-User.associate = (models) => {
-    User.hasMany(models.Friends)
-}
+
 module.exports = User;

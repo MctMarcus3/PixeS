@@ -10,6 +10,9 @@ const JWT_SECRET = 'some super secret...'
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 const sgMail = require('@sendgrid/mail');
+const fs = require('fs');
+const upload = require('../helpers/imageUpload');
+
 
 function sendEmail(userId, email, token) {
     sgMail.setApiKey("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")
@@ -150,7 +153,7 @@ router.post('/findFriend/:id', (req, res) => {
                             res.json(friends)
                         } else {
                             let status = '1'
-                            Friends.create({ friend: id, friendsWith: existingid, status })
+                            Friends.create({ friend: existingid, friendsWith: id, status })
                                 .then(friends => {
                                     let msg = 'request sent';
                                     console.log(msg)
@@ -193,22 +196,21 @@ router.post('/addFriend', (req, res) => {
 });
 
 router.route('/getAllMyFriends/:id')
-    .get(async (req, res) => {
+    .get(async(req, res) => {
         const id = req.params.id;
         const allFriends = await Friends.findAll({
-            where: { 
-                [Op.or]: [
-                {
-                    friend: id,
-                    
-                },
-                {   
-                    friendsWith: id
-                }
+            where: {
+                [Op.or]: [{
+                        friend: id,
+
+                    },
+                    {
+                        friendsWith: id
+                    }
                 ]
-                }
-        }).then(
-        )
+
+            }
+        }).then()
         return res.json(allFriends);
     });
 
@@ -370,5 +372,94 @@ router.post('/reset-password/:id/:token', (req, res, next) => {
             }
         });
 })
+
+router.get("/viewFriends/:id", (req, res) => {
+    let id = req.params.id;
+    Friends.findAll({
+            where: {
+                [Op.or]: [{
+                        friend: id,
+
+                    },
+                    {
+                        friendsWith: id
+                    }
+                ]
+
+            }
+        })
+        .then((Friends) => {
+            let friendList = []
+            let friend = {}
+            for (i in Friends) {
+                console.log(Friends[i].dataValues.friend, Friends[i].dataValues.friendsWith, id)
+                if (parseInt(Friends[i].dataValues.friend) === parseInt(id)) {
+                    console.log("its me!")
+                    User.findOne({
+                            where: { id: Friends[i].dataValues.friendsWith }
+                        })
+                        .then((user) => {
+                            console.log(user)
+                            friendList.push({
+                                id: user.dataValues.id,
+                                name: user.dataValues.name,
+                                exisitingId: id
+                            })
+                        })
+                } else {
+                    User.findOne({
+                            where: { id: Friends[i].dataValues.friend }
+                        })
+                        .then((user) => {
+                            friend[id] = user.dataValues.name
+                            friendList.push({
+                                id: user.dataValues.id,
+                                name: user.dataValues.name,
+                                exisitingId: id
+
+                            })
+                            console.log(friendList)
+                        })
+                }
+            }
+            res.render("user/showFriends", {
+                friends: friendList,
+            });
+
+        })
+        .catch((err) => console.log(err));
+});
+
+router.post("/deleteFriend", (res, req) => {
+    console.log(req.body)
+        //    let { friendid, id } = req.body
+        //    console.log(friendid, id)
+    Friends.destroy({
+        where: {
+            [Op.or]: [{
+                    [Op.and]: [{
+                            friend: id,
+
+                        },
+                        {
+                            friendsWith: friendid
+                        }
+                    ]
+                },
+                {
+                    [Op.and]: [{
+                            friend: friendid,
+
+                        },
+                        {
+                            friendsWith: id
+                        }
+                    ]
+                }
+            ]
+        }
+    })
+})
+
 
 module.exports = router;

@@ -6,12 +6,15 @@ const Friends = db.define('friends', {
     },
     friendsWith: {
         type: Sequelize.INTEGER
+
     },
     status: {
         type: Sequelize.ENUM(['0', '1', '2'])
     },
 })
-Friends.associate = (models) => {
-    Friends.belongsTo(models.User, { as: 'User'})
+
+Friends.associate = function(models) {
+    Friends.hasMany(Users, { foreignKey: 'id', sourceKey: 'id' });
 }
+
 module.exports = Friends;
