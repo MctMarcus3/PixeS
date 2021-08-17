@@ -112,6 +112,7 @@ router.post('/login', (req, res, next) => {
 });
 
 router.post('/findFriend/:id', (req, res) => {
+    req.flash('id', req.params.id)
     let existingid = req.params.id
     let thing = req.body
     let id = thing.id
@@ -119,72 +120,59 @@ router.post('/findFriend/:id', (req, res) => {
     let success_msg = '';
     var found = "false";
     console.log(id, existingid);
+    if (id === existingid) {
+        let msg = 'Cant add yourself';
+        console.log(msg)
+        alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+        res.redirect("/showProfile");
+    } else {
 
-    User.findOne({ where: { id: id } })
-        .then(user => {
-            if (!user) {
-                let msg = 'User not Found';
-                console.log(msg)
-                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
-                res.redirect("/showProfile");
-            } else {
-                Friends.findOne({
-                        where: {
-                            [Op.or]: [{
-                                    [Op.and]: [
-                                        { friend: id },
-                                        { friendsWith: existingid }
-                                    ]
-                                },
-                                {
-                                    [Op.and]: [
-                                        { friend: existingid },
-                                        { friendsWith: id }
-                                    ]
-                                }
-                            ]
-                        }
-                    })
-                    .then(friends => {
-                        if (friends) {
-                            let msg = 'Already friends';
-                            console.log(msg)
-                            alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
-                            res.json(friends)
-                        } else {
-                            let status = '1'
-                            Friends.create({ friend: existingid, friendsWith: id, status })
-                                .then(friends => {
-                                    let msg = 'request sent';
-                                    console.log(msg)
-                                    alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
-                                    // res.redirect('/showProfile');
-                                    res.json(friends)
-                                })
-                        }
-                    })
-            }
-        });
+        User.findOne({ where: { id: id } })
+            .then(user => {
+                if (!user) {
+                    let msg = 'User not Found';
+                    console.log(msg)
+                    alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+                    res.redirect("/showProfile");
+                } else {
+                    Friends.findOne({
+                            where: {
+                                [Op.or]: [{
+                                        [Op.and]: [
+                                            { friend: id },
+                                            { friendsWith: existingid }
+                                        ]
+                                    },
+                                    {
+                                        [Op.and]: [
+                                            { friend: existingid },
+                                            { friendsWith: id }
+                                        ]
+                                    }
+                                ]
+                            }
+                        })
+                        .then(friends => {
+                            if (friends) {
+                                let msg = 'Already friends';
+                                console.log(msg)
+                                alertMessage(res, 'danger', msg, 'fas fa-exclamation-circle', false);
+
+                            } else {
+                                let status = '1'
+                                Friends.create({ friend: existingid, friendsWith: id, status })
+                                    .then(friends => {
+                                        let msg = 'request sent';
+                                        console.log(msg)
+                                        alertMessage(res, 'success', msg, 'fas fa-sign-in-alt', true);
+                                        res.redirect('../../viewFriends/' + existingid);
+                                    })
+                            }
+                        })
+                }
+            });
+    }
 });
-
-router.route('/getAllMyFriends/:id')
-    .get(async(req, res) => {
-        const id = req.params.id;
-        const allFriends = await Friends.findAll({
-            where: {
-                [Op.or]: [{
-                        friend: id,
-
-                    },
-                    {
-                        friendsWith: id
-                    }
-                ]
-
-            }
-        }).then()
-        return res.json(allFriends);
-    });
 
 router.post('/update', (req, res) => {
     let id = req.flash('id')
@@ -343,7 +331,7 @@ router.post('/reset-password/:id/:token', (req, res, next) => {
                 console.log("Invalid ID");
             }
         });
-})
+});
 
 router.get("/viewFriends/:id", (req, res) => {
     let id = req.params.id;
@@ -366,17 +354,16 @@ router.get("/viewFriends/:id", (req, res) => {
             for (i in Friends) {
                 console.log(Friends[i].dataValues.friend, Friends[i].dataValues.friendsWith, id)
                 if (parseInt(Friends[i].dataValues.friend) === parseInt(id)) {
-                    console.log("its me!")
                     User.findOne({
                             where: { id: Friends[i].dataValues.friendsWith }
                         })
                         .then((user) => {
-                            console.log(user)
                             friendList.push({
-                                id: user.dataValues.id,
+                                id: parseInt(user.dataValues.id),
                                 name: user.dataValues.name,
-                                exisitingId: id
+                                exisitingId: parseInt(id)
                             })
+                            console.log(friendList)
                         })
                 } else {
                     User.findOne({
@@ -385,9 +372,9 @@ router.get("/viewFriends/:id", (req, res) => {
                         .then((user) => {
                             friend[id] = user.dataValues.name
                             friendList.push({
-                                id: user.dataValues.id,
+                                id: parseInt(user.dataValues.id),
                                 name: user.dataValues.name,
-                                exisitingId: id
+                                exisitingId: parseInt(id)
 
                             })
                             console.log(friendList)
@@ -402,10 +389,10 @@ router.get("/viewFriends/:id", (req, res) => {
         .catch((err) => console.log(err));
 });
 
-router.post("/deleteFriend", (res, req) => {
-    console.log(req.body)
-        //    let { friendid, id } = req.body
-        //    console.log(friendid, id)
+router.get("/unfriend/:id/:friendid", (req, res) => {
+    let id = req.params.id;
+    let friendid = req.params.friendid
+    console.log(id, friendid)
     Friends.destroy({
         where: {
             [Op.or]: [{
@@ -431,7 +418,9 @@ router.post("/deleteFriend", (res, req) => {
             ]
         }
     })
-})
+    res.redirect('../../viewFriends/' + id);
+});
+
 
 
 module.exports = router;

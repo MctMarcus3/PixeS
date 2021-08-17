@@ -7,7 +7,7 @@
         <tr>
             <th>Friend's id</th>
             <th>Friend's Name</th>
-            {{!-- <th>Status</th> --}}
+            <th>Status</th>
         </tr>
         </thead>
         <tbody>
@@ -15,8 +15,8 @@
             <tr>
                 <td>{{id}}</td>
                 <td>{{name}}</td>
-                {{!-- <td><button type="button" class="btn btn-danger" data-toggle="modal"
-                        data-target="#friend{{id}}">Delete</button></td> --}}
+                <td><button type="button" class="btn btn-danger" data-toggle="modal"
+                        data-target="#friend{{id}}">Unfriend</button></td>
                 {{!-- Modal --}}
                 <div class="modal fade" id="friend{{id}}" tabindex="-1" role="dialog"
                     aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -34,7 +34,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <form action="/user/deleteFriend" method="POST">
+                                <form action='/user/unfriend/{{exisitingId}}/{{id}}' method="POST" >
                                     <input type="hidden" name="friendid" class="form-control" value = "{{id}}">
                                     <input type="hidden" name="id" class="form-control" value = "{{exisitingId}}">
                                     <button type="submit" class="btn btn-danger" >Unfriend</button>
