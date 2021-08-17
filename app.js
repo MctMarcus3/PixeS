@@ -91,7 +91,7 @@ app.use(
         extended: false,
     })
 );
-app.use(bodyParser.json());
+//app.use(bodyParser.json());
 
 // Creates static folder for publicly accessible HTML, CSS and Javascript files
 app.use(express.static(publicPath));

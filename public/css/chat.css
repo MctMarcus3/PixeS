@@ -5,6 +5,7 @@
     border-radius: 5px;
     padding: 10px;
     margin: 10px 0;
+    position: relative;
 }
 
 /* Darker chat container */
@@ -37,13 +38,25 @@
 }
   
 /* Style time text */
-.time-right {
+.time {
+    float: left;
+    position: absolute;
+    bottom: 0;
+    color: #999;
+}
+
+/* Style buttons */
+.btn {
     float: right;
-    color: #aaa;
+    background-color: #bfbfbf; /* Blue background */
+    border: none; /* Remove borders */
+    color: white; /* White text */
+    padding: 6px 8px; /* Some padding */
+    font-size: 12px; /* Set a font size */
+    cursor: pointer; /* Mouse pointer on hover */
 }
   
-/* Style time text */
-.time-left {
-    float: left;
-    color: #999;
+/* Darker background on mouse-over */
+.btn:hover {
+    background-color: #bfbfbf;
 }

@@ -13,7 +13,8 @@ router.get("/group", (req, res) => {
 });
 
 router.get("/groups/:id", (req, res) => {
-    res.render("chats/group");
+    let gid = req.params.id;
+    res.redirect(`/chat/groups/${gid}`)
 });
 
 //Login User

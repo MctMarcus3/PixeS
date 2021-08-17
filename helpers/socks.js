@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
       c.forEach((d) => {
         messages.push(d.dataValues);
       });
-      
+
       User.findAll().then((u) => {
         u.forEach((f) => {
           let da = f.dataValues;
@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
   socket.on("get_members", (rcv) => {
     console.log("add");
     Group.findAll({ where: { id: rcv.grp_id } }).then((e) => {
-      var data;
+      let data;
       try {
         data = JSON.parse(e[0].dataValues["members"]);
       } catch (e) {}

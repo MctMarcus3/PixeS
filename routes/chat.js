@@ -3,6 +3,7 @@ const socks = require("../helpers/socks");
 
 const Group = require("../models/Group");
 const User = require("../models/User");
+const Chat = require("../models/Chat");
 
 const router = express.Router();
 
@@ -27,6 +28,32 @@ router.get("/", (req, res) => {
   }
 });
 
+router.post("/delete", (req, res) => {
+  let body = req.body;
+  let d = body.d.split("_");
+  let c = d[0];
+  let i = d[1];
+
+  Chat.findOne({
+    where: {
+      channelid: c,
+      id: i
+    }
+  }).then((c) => {
+    console.log(c);
+
+    if (c.dataValues.hidden != true)
+    {
+      c.update({
+        hidden: true
+      })
+    }
+
+    res.redirect("/chat");
+  })
+  //console.log(req.body);
+});
+
 router.get("/user/:id", (req, res) => {
   let uid = req.params.id;
   if (socks.checkLoggedIn(req)) {
@@ -39,11 +66,12 @@ router.get("/user/:id", (req, res) => {
   }
 });
 
-router.get("/group/:id", (req, res) => {
+router.get("/groups/:id", (req, res) => {
   let gid = req.params.id;
   if (socks.checkLoggedIn(req)) {
     Group.findOne({ where: { id: gid } }).then((g) => {
       initSocketClient(req);
+      console.log(g);
       res.render("chats/group", { gname: g.dataValues.name });
     });
   } else {

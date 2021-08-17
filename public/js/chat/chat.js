@@ -4,9 +4,9 @@ function getChannel(l) {
   let length = l.length;
   let defaultChannel = "public";
   
-  if (length >= 3) {
-    let t = l[1].toLowerCase();
-    let i = l[2];
+  if (length >= 4) {
+    let t = l[2].toLowerCase();
+    let i = l[3];
 
     return `${t}${i}`;
   } else {
@@ -51,8 +51,9 @@ $(function () {
     {
       chatroom.append(
         `<div class="chatcontainer darker">
-          <p class="message">${data.username} : ${data.message}</p>
-          <span class="time-left">${time_sent}</span>
+          <p class="message"><b>${data.username}</b> : ${data.message}</p>
+          <span class="time">${time_sent}</span>
+          <button class="btn"><i class="fa fa-trash"></i></button>
         </div>`
       );
     }
@@ -60,8 +61,8 @@ $(function () {
     {
       chatroom.append(
         `<div class="chatcontainer">
-          <p class="message">${data.username} : ${data.message}</p>
-          <span class="time-left">${time_sent}</span>
+          <p class="message"><b>${data.username}</b> : ${data.message}</p>
+          <span class="time">${time_sent}</span>
         </div>`
       );
     }
@@ -74,37 +75,46 @@ $(function () {
     for (let i = 0; i < messages.length; i++)
     {
       let msg = messages[i];
+
       let mid = msg.id;
       let userid = msg.userid;
       let text = msg.text;
+      let hidden = msg.hidden;
 
-      let time_sent = new Date(msg.time_sent).toLocaleString();
-
-      if (users[userid] != null)
+      if (!hidden)
       {
-        let u = users[userid];
-        let uname = u.name;
+        let time_sent = new Date(msg.time_sent).toLocaleString();
 
-        if (clients[userid] == socket.id)
+        if (users[userid] != null)
         {
-          chatroom.append(`<div class="chatcontainer darker" id=${mid}>
-              <p class="message">${uname} : ${text}</p>
-              <span class="time-left">${time_sent}</span>
-            </div>`);
+          let u = users[userid];
+          let uname = u.name;
+
+          if (clients[userid] == socket.id)
+          {
+            chatroom.append(`<div class="chatcontainer darker" id=${mid}>
+                <p class="message"><b>${uname}</b> : ${text}</p>
+                <span class="time">${time_sent}</span>
+                <form action="/chat/delete" method="post">
+                  <input type="hidden" value="${channel}_${mid}" name="d" />
+                  <button class="btn" type="submit" name="delete"><i class="fa fa-trash"></i></input>
+                </form>
+              </div>`);
+          }
+          else
+          {
+            chatroom.append(`<div class="chatcontainer" id=${mid}>
+                <p class="message"><b>${uname}</b> : ${text}</p>
+                <span class="time">${time_sent}</span>
+              </div>`);
+          }
         }
         else
         {
-          chatroom.append(`<div class="chatcontainer" id=${mid}>
-              <p class="message">${uname} : ${text}</p>
-              <span class="time-left">${time_sent}</span>
-            </div>`);
+          chatroom.append(
+            "<p style=\"color: red\" class=\"message\"><b>Error loading message(s).</b></p>"
+          );
         }
-      }
-      else
-      {
-        chatroom.append(
-          "<p class=\"message\">Error loading message(s).</p>"
-        );
       }
     }
   })
