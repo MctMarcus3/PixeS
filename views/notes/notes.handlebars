@@ -27,18 +27,21 @@
 
 <script>
   var namee = "{{name}}";
-  var groupid = "{{g_id}}"
-  var sent = namee.split(",")
+  var groupid = "{{g_id}}";
+  var sent = namee.split(",");
+  
   var sent_list = []
   var temp = []
   for (let i = 0; i <= sent.length; i++) {
     temp.push(sent[i])
-    if (temp.length > 3){
+    //console.log(temp)
+    if (temp.length > 4){
       sent_list.push(temp)
       temp = []
     };
- 
 }
+
+ 
 
   
   
@@ -77,7 +80,7 @@
       div.style.left = this.x.toString() + "px";
       div.style.top = this.y.toString() + "px";
       div.style.backgroundColor = this.color;
-      div.style.color = "blue";
+      div.style.color = "black";
       //div.style.height = "50vh";
       div.style.display = "flex";
       div.style.alignItems = "center";
@@ -97,10 +100,61 @@
       del.innerHTML = ""
       del.onclick =function(){
       $.post("/notes/deletenote",{gid:groupid,id:div.id});
-      window.location.href = "/notes/" + groupid;
-      
-  };
+      window.location.href = "/notes/" + groupid;    
+        };
+
       div.appendChild(del);
+
+      var change_red = document.createElement("button");
+      change_red.style.position = "absolute";
+      change_red.style.left = 5 + "px";
+      change_red.style.top = 5 + "px"; 
+      change_red.style.padding = "5px 5px"
+      change_red.style.backgroundColor = "red";
+      change_red.onclick =function(){
+      
+      div.style.backgroundColor = "red"
+      $.post("/notes/updatenote",{id:div.id, text:text.innerHTML, x:parseFloat(div.style.left), y:parseFloat(div.style.top),gid:groupid,color:"red"});
+      window.location.href = "/notes/" + groupid;  
+      
+      };
+
+      div.appendChild(change_red);
+
+      var change_yellow = document.createElement("button");
+      change_yellow.style.position = "absolute";
+      change_yellow.style.left = 25 + "px";
+      change_yellow.style.top = 5 + "px"; 
+      change_yellow.style.padding = "5px 5px"
+      change_yellow.style.backgroundColor = "yellow";
+      change_yellow.onclick =function(){
+      
+      div.style.backgroundColor = "yellow"
+      $.post("/notes/updatenote",{id:div.id, text:text.innerHTML, x:parseFloat(div.style.left), y:parseFloat(div.style.top),gid:groupid,color:"yellow"});
+      window.location.href = "/notes/" + groupid;  
+      
+      };
+
+      div.appendChild(change_yellow);
+
+      var change_green = document.createElement("button");
+      change_green.style.position = "absolute";
+      change_green.style.left = 45 + "px";
+      change_green.style.top = 5 + "px"; 
+      change_green.style.padding = "5px 5px"
+      change_green.style.backgroundColor = "green";
+      change_green.onclick =function(){
+      
+      div.style.backgroundColor = "green"
+      $.post("/notes/updatenote",{id:div.id, text:text.innerHTML, x:parseFloat(div.style.left), y:parseFloat(div.style.top),gid:groupid,color:"green"});
+      window.location.href = "/notes/" + groupid;  
+      
+      };
+
+      div.appendChild(change_green);
+
+
+
       
       //document.getElementById("notes").appendChild(del);
       document.getElementById("notes").appendChild(div);
@@ -110,11 +164,11 @@
     };
     update(){
       
-      var id,text,x,y;
+      var id,text,x,y;  
       
       var t = this.text;
           
-          $.post("/notes/updatenote",{id:this.id, text:this.text, x:this.x, y:this.y,gid:groupid}
+          $.post("/notes/updatenote",{id:this.id, text:this.text, x:this.x, y:this.y,gid:groupid,color:this.color}
           );
       
     };
@@ -123,16 +177,18 @@
   };
 
   function displaynote(chosen_note){
-      new_note.CreateNote();
-      notes_list.push(chosen_note);
-      move_div(chosen_note);
+      for (i in notes_list){
+        i.move_div(chosen_note);
+      }
+      
   };
   function drawnotes(){
     
     for (i in sent_list){
       
-      
-      const new_note = new Note(sent_list[i][0], sent_list[i][2], sent_list[i][3], 300, 300, sent_list[i][1],"yellow");
+      //console.log(sent_list[i]);
+      const new_note = new Note(sent_list[i][0], sent_list[i][2], sent_list[i][3], 300, 300, sent_list[i][1],sent_list[i][4]);
+
       //console.log(new_note.x)
       new_note.CreateNote();
       notes_list.push(new_note);
@@ -143,21 +199,25 @@
   
   
   function createNewNote() {
+    var biggest = 0;
+    for (i in sent_list){
+      if (i[0] > biggest){
+        biggest = i[0];
+      };
+    };
     
-    if (sent_list.length > 0 ){
-    var new_id = JSON.parse(sent_list[sent_list.length - 1][0]) + 1
-    }
-    else{
-      var new_id = 1
-    }
+    var new_id = biggest + 1;
+    
     const new1 = new Note(new_id,250, 150, 300, 300,"New Note","yellow");
     count += 0;
     new1.CreateNote();
     notes_list.push(new1);
 
-    console.log(groupid)
+
     $.post("/notes/createnote",{gid:groupid});
+    
     move_div(new1);
+    window.location.href = "/notes/" + groupid;
   };
 
   
@@ -183,23 +243,6 @@ $(document).on('keyup', function() {
 
       };
 })
-/*document.onkeydown = function (e) {
-    e = e || window.event;
-    var key = event.keyCode || event.charCode;
-
-    if( key){
-      for (let i = 0; i < notes_list.length; i++) {
-      se_note = notes_list[i];
-      console.log(se_note.obj.textContent)
-      //se_note.text = se_note.obj.innerHTML
-      //se_note.update()
-
-      
-      };
-      
-    };
-    
-};*/
 
 
   function move_div(ele) {
