@@ -142,6 +142,7 @@ $(function () {
       $("#group-bind").append(elem);
     });
   });
+  
   socket.on("groups", (data) => {
     $("#group-note-bind").html("");
     data.forEach((e) => {
