@@ -65,13 +65,18 @@ router.post("/updatenote", (req, res) => {
     var color = req.body.color;
     //console.log(x,y);
    
-    console.log(id);
+    /*console.log(id);
     Notedb.destroy({where:{
         id:id
     }});
 
-    Notedb.create({id : id,text:text,x:x,y:y, g_id:group_id,color:color});
+    Notedb.create({id : id,text:text,x:x,y:y, g_id:group_id,color:color});*/
 
+    Notedb.update({ text:text, x:x, y:y, color:color}, {
+        where: {
+          id: id
+        }
+      });
     res.redirect("/notes/" + group_id);
 
 
